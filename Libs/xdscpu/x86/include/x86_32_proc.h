@@ -55,4 +55,6 @@
     //give's interrupt basic functionality
     #include "../source/interrupt/interrupt.h"
     
+    #define _XDS_X86_32_
+    
 #endif 
