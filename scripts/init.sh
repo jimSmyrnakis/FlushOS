@@ -13,3 +13,4 @@ sudo apt install gcc
 sudo apt install ld
 
 
+./buildCompiler.sh
