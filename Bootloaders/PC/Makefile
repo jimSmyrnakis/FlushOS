@@ -6,6 +6,11 @@ all: program.bin ./Message.txt
 	bless ./program.bin
 	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 /usr/bin/qemu-system-x86_64 -hda ./program.bin
 
+	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 gdb
+	 
+	
+
+
 program.bin: ./kernel_bootloader.asm
 	nasm -f bin ./kernel_bootloader.asm -o ./program.bin # set the nasm to assemble in raw binnary format the outnd
 

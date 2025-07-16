@@ -1,89 +1,99 @@
-ORG 0x0000
+ORG 0x7c00
 BITS 16
 
+CODE_SEGMENT equ  Code_Descriptor - global_descriptor_table
+DATA_SEGMENT equ  Data_Descriptor - global_descriptor_table
 ;BIOS Possible parameter block
 BIOS_BLOCK:
     ; based on osdev org BPB first command
     jmp short entry_point
     nop 
-times (29) db 0
-
-driver_number: db 0
-
-interrupt_habdle_zero:
-    mov ah , 0x000e
-    mov al , 'A'
-    mov bx , 0
-    int 0x10
-    iret 
+times (33) db 0
 
 
 
 entry_point:
-    jmp 0x7c0:init ; Αναγκάζει τον cs register να πάρει την τιμή 0x7c0 και να κάνει αλμα στην εντολή offset init 
+    jmp 0:init ; Αναγκάζει τον cs register να πάρει την τιμή 0 και να κάνει αλμα στην εντολή offset init 
 
 init:
     cli 
-    mov ax , 0x07c0
+    mov ax , 0x0000
     mov bx , 0x0000
     ;mov cs , ax 
     mov ds , ax
     mov ss , bx 
     mov sp , 0x7c00
     mov es , ax 
-    ; save driver number
-    mov byte[driver_number] , dl 
     sti 
-init_interrupts:
-    mov word[ss:0x00] , interrupt_habdle_zero
-    mov word[ss:0x02] , 0x07c0
-
-test_interrupt:
-    int 0x00 ; by call (software interrupt call)
-    mov ax , 0x0000
-    div ax ; ganaerate the interrupt by processor as exception
-
 start:
-    loadNextSector:
-        mov ah , 02h;
-        mov al , 1 ; number of sectors
-        mov ch , 0 ; cylinder number 
-        mov cl , 2 ; second sector (start from 1 as first )
-        mov dh , 0 ; first head
-        ;dl is given by the bios 
-        mov dl , byte[driver_number]
-        mov bx , message 
-        int 0x13
-        jc print_error
-    print_text:
-        mov si , message 
-        call print 
-        jmp $ ; to your self
+    init_descriptors:
+        cli 
+        lgdt [gdt_descriptor]
+        
+    enable_protected_mode:
+        mov eax , cr0 
+        or eax , 0x00000001 ; PE flag to set protected mode
+        
+        mov cr0 , eax 
+        
+        jmp CODE_SEGMENT:load32 ; load code selector and move to load32 place
         
 
-    print_error:
-    mov si , error_message 
-    call print 
-    jmp $ ; to your self
+    
+global_descriptor_table:
+    null_descriptor:    
+        dd 0
+        dd 0
+        
+; 0000 0000 1000 0000 
+; 0x 0 0    8 0
 
-print:
-    mov bx , 0;
-.loop0:
-    lodsb 
-    cmp al , 0
-    je .done 
-    call print_character
-    jmp .loop0
-.done: 
-    ret 
+    ;==============Code Segment descriptor ==================
+Code_Descriptor:
+    ; limit first 16 bits
+    dw 0xFFFF
+    ; base 16 first bits
+    dw 0x0000
+    ; next 8 bits of base 
+    db 0x00
+    ; special flags
+    db 0x9A ; code segment with read access 
+    db 0xCF ; granuarity + compatibility mode + 32-bit addresses + 19-16 bits limit to ones 
+    db 0x00 ; base last 8 bits to 0
+    ;==============Data Segment descriptor ==================
+Data_Descriptor:
+    ; limit first 16 bits
+    dw 0xFFFF
+    ; base 16 first bits
+    dw 0x0000
+    ; next 8 bits of base 
+    db 0x00
+    ; special flags
+    db 0x92 ; data segment with write access 
+    db 0xCF ; granuarity + compatibility mode + 32-bit addresses + 19-16 bits limit to ones 
+    db 0x00 ; base last 8 bits to 0
+global_descriptor_table_end:
+
+gdt_descriptor:
+    dw global_descriptor_table_end - (global_descriptor_table) - 1
+    dd global_descriptor_table
 
 
-print_character:
-    mov ah , 0eh ; special command for this interrupt routine of the bios
-    int 0x10 ; a bios interrupt routine that is provided 
-    ret 
+;===========================================================================================================================
+;============================================== 32 bit protected mode ======================================================
+;===========================================================================================================================
+[BITS 32]
 
-error_message: db 'Failed to load next Sector' , 0
+load32:
+    ;αρχικοποιήση τμήματος δεδομένων σε όλους τους data segment registers
+    mov ax , DATA_SEGMENT
+    mov ds , ax
+    mov ss , ax 
+    mov es , ax 
+    mov fs , ax
+    mov gs , ax
+
+    jmp $
 
 times 510 - ($ - $$) db 0
 

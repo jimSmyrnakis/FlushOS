@@ -6,3 +6,5 @@ sudo apt install nasm
 sudo apt install qemu-system-x86
 #bless 
 sudo apt install bless
+#gdb for debbuging 
+sudo apt install gdb
