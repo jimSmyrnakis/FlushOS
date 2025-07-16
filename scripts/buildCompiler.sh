@@ -27,5 +27,10 @@ make
 make install
 cd ../../../scripts
 
-#
+#gcc cross platform
+cd ../Tools/src
+which -- $TARGET-as || echo $TARGET-as is not in the PATH
+mkdir build-gcc
+cd build-gcc
+../gcc-10.2.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls
 
