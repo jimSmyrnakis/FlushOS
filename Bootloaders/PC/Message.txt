@@ -1,1 +1,0 @@
-Hello World , this is a message using bios and low level programming :) !!!
