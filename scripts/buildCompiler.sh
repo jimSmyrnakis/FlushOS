@@ -16,9 +16,9 @@ sudo apt install texinfo
 sudo apt install libisl-dev
 
 #build unitilites for i686 processor
-EXPORT PREFIX="$HOME/Tools/opt/cross"
-EXPORT TARGET=i686-elf
-EXPORT PATH="$PREFIX/bin:$PATH"
+export PREFIX="$HOME/Tools/opt/cross"
+export TARGET=i686-elf
+export PATH="$PREFIX/bin:$PATH"
 cd ../Tools/src
 mkdir build-binutils
 cd build-binutils
@@ -46,7 +46,7 @@ make install-target-libstdc++-v3
 
 #testing ...
 echo "Testing ..."
-$HOME/opt/cross/bin/$TARGET-gcc --version
+$HOME/Tools/opt/cross/bin/$TARGET-gcc --version
 
 
 
