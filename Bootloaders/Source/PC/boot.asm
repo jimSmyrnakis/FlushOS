@@ -38,7 +38,7 @@ start:
         
         mov cr0 , eax 
         
-        jmp CODE_SEGMENT:load32 ; load code selector and move to load32 place
+        jmp CODE_SEGMENT:load32
         
 
     
@@ -81,30 +81,70 @@ gdt_descriptor:
     dd global_descriptor_table
 
 
-;===========================================================================================================================
-;============================================== 32 bit protected mode ======================================================
-;===========================================================================================================================
 [BITS 32]
+load32: ; Χρήση ενός απλού οδηγού σκληρού δίσκου για την φώρτωση όλου του πυρίνα 
+    mov eax , 1 ; πρώτο μπλόκ του δίσκου
+    mov ecx , 10 ; 10 συνολικά μπλόκς 
+    mov edi , 0x0100000 ; προόρισμός στην διεύθυνση 1ΜΒ όπου περιμένουμε να αρχίση ο πυρίνας
+    call ata_lba_read
+    jmp CODE_SEGMENT:0x0100000
 
-load32:
-    ;αρχικοποιήση τμήματος δεδομένων σε όλους τους data segment registers
-    mov ax , DATA_SEGMENT
-    mov ds , ax
-    mov ss , ax 
-    mov es , ax 
-    mov fs , ax
-    mov gs , ax
-    mov ebp , 0x00200000
-    mov esp , ebp 
 
-    ; αρχικοποιή το Αddress bit 20 του επεξεργαστή . όμως μόνο στα σημερηνά συστήματα λειτουργή .
-    enable_A20_line:
-        in al , 0x92 
-        or al , 2
-        out 0x92 , al 
+ata_lba_read:
+    mov ebx , eax ; temp store sector index
+    ; Send high 8 bits to the lba hd controller
+    shr eax , 24
+    or eax , 0xE0 ; Select master drive
+    mov dx , 0x1F6
+    out dx , al 
 
-    jmp $
+    ; Send total sectors
+    mov eax , ecx 
+    mov dx , 0x1F2
+    out dx , al 
 
+
+    ; Send more bits of the lba (first byte)
+    mov eax , ebx ; take the temp lba 
+    mov dx , 0x1F3
+    out dx , al 
+
+    ; Send second lba byte 
+    mov eax , ebx 
+    mov dx , 0x1F4
+    shr eax , 8
+    out dx , al
+
+    ; Send 3thrd byte of lba
+    mov dx , 0x1F5
+    mov eax , ebx 
+    shr eax , 16
+    out dx , al 
+
+    ; 
+    mov dx , 0x1F7
+    mov al , 0x20
+    out dx , al 
+
+    ; Read all sectors to the memory with polling method (this is just something to work for beggining )
+    .next_sector
+        push ecx ; back up ecx
+    ; check if a sector is available with polling
+    .try_again
+        mov dx , 0x1F7
+        in al , dx 
+        test al , 8
+        jz .try_again
+    ; read the sector
+        mov ecx , 256
+        mov dx , 0x1F0 
+        rep insw ; rep repeats this instruction as many as ecx counter is set , here is 256
+        ; where insw or in string word (16-bit) reads a byte from the port dx (0x1F0) and stores it 
+        ; to the edi register 
+        pop ecx ; restore ecx value
+        loop .next_sector 
+
+    ret 
 
 
 times 510 - ($ - $$) db 0
@@ -113,6 +153,6 @@ times 510 - ($ - $$) db 0
 
 bootSignature:
     dw 0xAA55 ; 55AA the way a bios recognise the boot sector on the specific disk
-message:
+
 
 
