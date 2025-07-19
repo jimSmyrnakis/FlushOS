@@ -15,7 +15,7 @@ all: ../Image/flushos.bin
 	rm -rf ../Image/flushos.bin
 	dd if=../Bootloaders/Image/bootloader.bin  >> ../Image/flushos.bin
 	dd if=../Builds/os.bin >> ../Image/flushos.bin
-	dd if=/dev/zero bs=512 count=30 >> ../Image/flushos.bin
+	dd if=/dev/zero bs=512 count=100 >> ../Image/flushos.bin
 
 ../Builds/os.bin: ../Builds/os.o
 	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o

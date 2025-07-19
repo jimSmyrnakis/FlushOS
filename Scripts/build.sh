@@ -9,6 +9,7 @@ cd ../Libs/xdscpu/i686/build
 ./build.sh
 cd ../../../../Scripts
 
+
 #create first level bootloader
 cd ../Bootloaders
 ./build.sh

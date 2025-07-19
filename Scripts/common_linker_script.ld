@@ -2,7 +2,7 @@ ENTRY(kernel_init)
 OUTPUT_FORMAT(binary)
 SECTIONS
 {
-    . = 1M ;/* this actually says our first address in memory is 0x100000 or after 1MB memory (exacly after real mode max addressable space) */
+    . = 1M ;
 
     .text : ALIGN(4096)
     {
@@ -11,7 +11,7 @@ SECTIONS
 
     .rodata : ALIGN(4096)
     {
-        *(.rodata)
+        KEEP(*(.rodata))
     }
 
     .data : ALIGN(4096)

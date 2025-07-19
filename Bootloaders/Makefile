@@ -12,7 +12,7 @@ all: ./Image/bootloader.bin
 	nasm -f bin ./Source/PC/boot.asm -o ./Builds/boot.bin # set the nasm to assemble in raw binnary format the outnd
 
 clean: 
-	rm -rf ./Builds/boot.bin ./Image/bootloader.bin  ./Builds/kernel_boot.bin
+	rm -rf ./Builds/boot.bin ./Image/bootloader.bin  
 
 
 	
