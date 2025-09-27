@@ -1,0 +1,4 @@
+/Tools/src/build-gcc
+/Tools/src/build-binutils
+**.o
+**.bin
