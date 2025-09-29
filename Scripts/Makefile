@@ -6,13 +6,13 @@ libraries= ../Libs/xdscpu/i686/library/x86_32_proc.o
 object_files=  ../Kernel/Builds/flush_kernel.o  $(libraries)
 
 all: ../Image/flushos.bin
-	ndisasm ../Image/flushos.bin
 	
 	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 /usr/bin/qemu-system-x86_64 -hda ../Image/flushos.bin
 	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 gdb
 
 notYet:
 	bless ../Image/flushos.bin
+	ndisasm ../Image/flushos.bin
 	
 ../Image/flushos.bin: ../Builds/os.bin ../Bootloaders/Image/bootloader.bin
 	rm -rf ../Image/flushos.bin

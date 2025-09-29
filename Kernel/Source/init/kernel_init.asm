@@ -5,7 +5,9 @@ DATA_SEGMENT equ 0x10
 
 extern kernel_main
 global kernel_init
+global problem
 kernel_init:
+    cli 
     ;αρχικοποιήση τμήματος δεδομένων σε όλους τους data segment registers
     mov ax , DATA_SEGMENT
     mov ds , ax
@@ -21,7 +23,13 @@ kernel_init:
         in al , 0x92 
         or al , 2
         out 0x92 , al 
+    
     call kernel_main
     jmp $
+
+
+problem:
+    int 0
+    ret 
 
 times 512 - ($ - $$) db 0
