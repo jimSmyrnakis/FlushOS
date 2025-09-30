@@ -13,8 +13,11 @@ void kernel_main(void){
     
     interrupts_init();
     text_mode_print_str(" Lol" , TM_DARK_BLUE);
-    enable_intt();
-    problem();
+    //enable_intt();
+    
+
+    outb(0xFF , 0x60 ); // teting ...
+
 
 
 
