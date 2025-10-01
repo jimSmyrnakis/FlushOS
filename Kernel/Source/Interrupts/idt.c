@@ -27,7 +27,7 @@ void idt_set_intt_gate(
     interrupt_descriptor* intt = &idt[intt_no];
     uint32_t proc32 = (uint32_t)proc;
     intt->zero = 0;
-    intt->attributes = INTTYPE_INTT_GATE | INTATTR_PRESENT | INTATTR_SUPERVISOR ;
+    intt->attributes = INTTYPE_INTT_GATE | INTATTR_PRESENT | INTATTR_USER ;
     intt->offset_lo16 = proc32 & 0x0000FFFF;
     intt->offset_hi16 = ((proc32 & 0xFFFF0000) >> 16);
     intt->selector = KERNEL_CODE_SELECTOR;

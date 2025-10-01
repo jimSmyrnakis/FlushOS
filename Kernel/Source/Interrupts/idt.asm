@@ -49,7 +49,23 @@ disable_intt:
 extern default_handler
 global isr_default
 isr_default:
-    pusha
+    cli
+    pushad
+     
     call default_handler
-    popa
-    iretd
+
+    popad
+    sti 
+    iret
+
+extern default_irq_handler
+global isr_irq_default
+isr_irq_default:
+    cli
+    pushad
+     
+    call default_irq_handler
+
+    popad
+    sti 
+    iret
