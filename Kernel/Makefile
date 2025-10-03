@@ -2,7 +2,7 @@ cc = i686-elf-gcc
 ld = i686-elf-ld
 ccflags =-g -Wno-unused-variable -ffreestanding -std=gnu99 -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -Iinc -nostdlib -nostartfiles -nodefaultlibs -Wall -O0
 
-object_files=./Builds/kernel_init.asm.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
+object_files=./Builds/kernel_init.asm.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
 
 all: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ./Builds/flush_kernel.o 
@@ -36,5 +36,9 @@ all: $(object_files)
 
 ./Builds/heap.o: ./Source/heap/heap.c 
 	$(cc) $(ccflags) -c ./Source/heap/heap.c   -o ./Builds/heap.o
+
+./Builds/kheap.o: ./Source/heap/kheap.c 
+	$(cc) $(ccflags) -c ./Source/heap/kheap.c   -o ./Builds/kheap.o
+
 clean:
 	rm -rf $(object_files) ./Builds/flush_kernel.o 

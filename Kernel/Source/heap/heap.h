@@ -21,9 +21,11 @@
         uiptr    size     ;  // The actual size in bytes of the estimate by the user available space
         uiptr    heap_base;  // The base address where the user heap starts
         uiptr    heap_size;  // The heap actual size in bytes without that of the system required
+        uint32_t heap_blks;  // The number of total blocks that is exist for the user to use 
         uiptr    syst_base;  // The actually system structures start address 
         uint16_t syst_size;  // The actual system structures size in bytes
-        uint32_t avai_blks;  // The number of blocks that is available at that moment
+        uint32_t syst_blks;  // The actual blocks count of the system struct's 
+        uint32_t avai_blks;  // The number of blocks that is available at that moment for the user
     };
 
     
@@ -36,10 +38,12 @@
         // with the new state of the heap  
     }  ; // This struct is used as a indetifier to our heap and is different for each
     // heap . The reason sys_data is a void* pointer is because the implementation and 
-    // algorithm structures of the heap may change in the future
+    // algorithm structures of the heap may change in the future if needed 
 
     errno heap_create(struct heap_attr attr , struct heap** heap);
-    // Creates the heap , system structures and stuff 
+    // Creates the heap , system structures and stuff and fills the heap pointer 
+    // that is our indentifier for each heap , this way our code can use many area
+    // of addressable ram that is not in continues chunks . 
 
     struct heap_info heap_get_info(struct heap* id);
     // Get all info of the heap at the current state

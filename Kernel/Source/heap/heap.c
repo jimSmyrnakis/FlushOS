@@ -1,7 +1,6 @@
 #include "heap.h"
 #include "../std/memory.h"
-
-// algorithm will be the most basic for moment
+// flags
 #define HAS_NEXT        ((uint8_t)0x80)
 #define IS_FIRST        ((uint8_t)0x40)
 #define SYSTEM_BLOCK    ((uint8_t)0x20)
@@ -9,140 +8,222 @@
 #define ET2             ((uint8_t)0x04)
 #define ET1             ((uint8_t)0x02)
 #define BLOCK_TAKEN     ((uint8_t)0x01)
+#define FREE_BLOCK      ((uint8_t)0x00)
 
 #ifndef NULL
 #define NULL ((void*)0)
-#endif 
+#endif
 
-#define FLUSHOS_EBADSIZE 10
-#define FLUSHOS_EBADBLCKSIZE 11
+#define FLUSHOS_EBADBLOCKSIZE 10
+#define FLUSHOS_EBADBLOCKCONT 11
+#define FLUSHOS_EBADSIZE      12
 
-uiptr align_up(uiptr base , uint16_t align){
-    uiptr res = base ;
+
+#define MIN_BLOCK_SIZE 128
+#define MIN_BLOCK_COUNT 2
+// align_up: ασφαλές, χωρίς διπλό modulo
+static inline uiptr align_up(uiptr base , uint16_t align){
+    if (align == 0) return base;
     uiptr offset = base % align;
-    if (offset != 0)
-        res += align - (base % align);
-
-    return res;
+    if (offset != 0) base += (align - offset);
+    return base;
 }
 
+/* heap_create: διορθωμένο, ασφαλές, 1 byte/entry table */
 errno heap_create(struct heap_attr attr , struct heap** heap){
     struct heap * newHeap = NULL;
-    (*heap) = NULL;
-
+    *heap = NULL;
+    
     uiptr base = attr.base;
     uiptr size = attr.size;
     uint16_t block_size = attr.block_size;
-    if (block_size < 128)
-        return FLUSHOS_EBADBLCKSIZE;
-    
-    uint16_t desire_block_count = size / block_size;
-    if (desire_block_count <= 1)
-        return FLUSHOS_EBADSIZE;
-    
 
-    //now we have the desire space e have to find the right alligned address for each 
-    //struct , so the code be compatible with cpus that may required alligment (x86 is 
-    //not required it but still is a good practice )
+    if (block_size < MIN_BLOCK_SIZE)
+        return FLUSHOS_EBADBLOCKSIZE;
 
-    uiptr heap_struct_base = align_up(base , sizeof(struct heap));
-    uiptr info_struct_base = align_up(
-        heap_struct_base + sizeof(struct heap),
-        sizeof(struct heap_info));
+    // total blocks that fit in region
+    uint32_t total_blocks = size / block_size;
+    if (total_blocks < MIN_BLOCK_COUNT)
+        return FLUSHOS_EBADBLOCKCONT;
 
+    // place structs aligned
+    uiptr heap_struct_base = align_up(base , (uint16_t)sizeof(struct heap));
+    uiptr info_struct_base = align_up(heap_struct_base + sizeof(struct heap),
+                                      (uint16_t)sizeof(struct heap_info));
+
+    // heap table: 1 byte per block (simple implementation)
     uiptr heap_table_base = info_struct_base + sizeof(struct heap_info);
-    uint16_t heap_table_size = desire_block_count ;
-    // our heap table will include these system blocks as HAS_ALLOCATED and SYSTEM_BLOCK
-    // this way we know that these are not used for another purpose :)
-    uiptr user_heap_base = align_up(heap_table_base + heap_table_size , block_size);
-    
-    //Now we start set up our structs :)
+    uint32_t table_entries = total_blocks; // bytes
+
+    // where user heap will start (align to block_size)
+    uiptr user_heap_base = align_up(heap_table_base + table_entries, block_size);
+
+    // sanity check: user_heap_base within region
+    if (user_heap_base < base) return FLUSHOS_EBADSIZE;
+    if ((user_heap_base - base) > size) return FLUSHOS_EBADSIZE;
+
+    // compute system blocks consumed by structs+table
+    uint32_t system_blocks = (user_heap_base - base) / block_size;
+    if (system_blocks == 0) system_blocks = 1; // enforce at least 1 
+
+    if (system_blocks > total_blocks) return FLUSHOS_EBADSIZE;
+
+    uint32_t user_blocks = total_blocks - system_blocks;
+    if (user_blocks == 0) return FLUSHOS_EBADSIZE;
+
+    // fill structures
     newHeap = (struct heap*)heap_struct_base;
     newHeap->info = (struct heap_info*)info_struct_base;
     newHeap->sys_data = (void*)heap_table_base;
+
     newHeap->info->base = base;
     newHeap->info->size = size;
     newHeap->info->blck_size = block_size;
-    newHeap->info->heap_base = user_heap_base;
-    newHeap->info->heap_size = size - (user_heap_base - base );
-    newHeap->info->syst_base = base;
-    newHeap->info->syst_size = user_heap_base - base ;
-    newHeap->info->avai_blks = newHeap->info->heap_size / block_size;
-    
-    uint8_t system_entities = SYSTEM_BLOCK ;
-    uint8_t user_new_entities = 0;
-    uint16_t system_blocks = desire_block_count - newHeap->info->avai_blks;
-// sys data is void* and my memset is memset(void* , int , size_t)
-    memset(newHeap->sys_data , system_entities , system_blocks);
-    memset(newHeap->sys_data + system_blocks , user_new_entities ,newHeap->info->avai_blks);  )
-    
 
-    
-    (*heap) = newHeap;
+    newHeap->info->heap_base = user_heap_base;
+    newHeap->info->heap_size = user_blocks * block_size;
+    newHeap->info->heap_blks = (uint32_t)user_blocks;
+
+    newHeap->info->syst_base = base;
+    newHeap->info->syst_size = system_blocks * block_size;
+    newHeap->info->syst_blks = (uint32_t)system_blocks;
+
+    newHeap->info->avai_blks = (uint32_t)user_blocks;
+
+    // initialize table (cast to uint8_t*)
+    uint8_t *table = (uint8_t*) newHeap->sys_data;
+
+    // mark system blocks
+    if (system_blocks > 0) {
+        memset(table, SYSTEM_BLOCK, system_blocks);
+    }
+    // mark user blocks as free
+    if (user_blocks > 0) {
+        memset(table + system_blocks, FREE_BLOCK, user_blocks);
+    }
+
+    *heap = newHeap;
     return FLUSHOS_EGOOD;
 }
 
+/* heap_get_info unchanged */
 struct heap_info heap_get_info(struct heap* id){
     return *(id->info);
 }
-bool isBlockFree(uint8_t entry){
+
+static inline bool isBlockFree(uint8_t entry){
     return !(entry & BLOCK_TAKEN) && !(entry & SYSTEM_BLOCK);
 }
 
-
+/* heap_malloc: corrected */
 void* heap_malloc(struct heap* id , size_t size){
-    if (size == 0)
-        return NULL;
+    if (!id || size == 0) return NULL;
 
-    uint8_t* table = id->sys_data;
-    uint16_t count = id->info->size / id->info->blck_size;
-    uint16_t blocks_asked = size / id->info->blck_size;
-    uint16_t i = 0;
-    uiptr ptr = 0;
-    while( i < count){
-        
-        // search the first available block 
-        if (isBlockFree(table[i]) && ((i + blocks_asked) < count))
-        {
-            bool isFounded = true;
-            // search to find blocks_asked available blocks
-            for (uint16_t j = i ; j < (i+blocks_asked) ; j++){
-                if (!isBlockFree(table[j]))
-                {
-                    isFounded = false;
-                    break;
-                }
-            }
-            // if not found then search for the next available series of blocks
-            if (!isFounded){
-                i += blocks_asked;
-                continue;
-            }
-                
-            // else allocate all elements :)
-            for (uint16_t j = i ; j < (i+blocks_asked) ; j++){
-                uint8_t block = BLOCK_TAKEN;
-                if (i == j)
-                    block |= IS_FIRST;
-                if ((j + 1) < (i + blocks_asked) )
-                    block |= HAS_NEXT;
+    uint8_t* table = (uint8_t*) id->sys_data;
+    uint32_t block_size = id->info->blck_size;
 
-                table[j] = block;
-            }
+    uint32_t system_blocks = id->info->syst_blks;
+    uint32_t user_blocks = id->info->heap_blks;
+    uint32_t total_blocks = system_blocks + user_blocks;
 
-            //ptr = id->info->heap_base + (i - id->info-> * id->info->blck_size ;
-            break;
+    // ceil division: blocks needed
+    uint32_t blocks_needed = (size + block_size - 1) / block_size;
+    if (blocks_needed == 0 || blocks_needed > user_blocks) return NULL;
+
+    uint32_t start = system_blocks;
+    uint32_t end_exclusive = system_blocks + user_blocks; // exclusive bound
+
+    for (uint32_t i = start; i + blocks_needed <= end_exclusive; ++i){
+        // quick skip
+        if (!isBlockFree(table[i])) continue;
+
+        bool ok = true;
+        for (uint32_t j = 0; j < blocks_needed; ++j){
+            if (!isBlockFree(table[i + j])) { ok = false; break; }
+        }
+        if (!ok) continue;
+
+        // allocate
+        for (uint32_t j = 0; j < blocks_needed; ++j){
+            uint8_t flags = BLOCK_TAKEN;
+            if (j == 0) flags |= IS_FIRST;
+            if (j + 1 < blocks_needed) flags |= HAS_NEXT;
+            table[i + j] = flags;
         }
 
-        i++;
+        // compute pointer to returned memory
+        uiptr offset_blocks = i - system_blocks; // 0-based within user area
+        uiptr ptr = id->info->heap_base + offset_blocks * block_size;
+
+        // update available
+        id->info->avai_blks -= blocks_needed;
+
+        return (void*)ptr;
     }
 
+    // not found
+    return NULL;
 }
 
+/* heap_zalloc: zero full allocated blocks (not only requested bytes),
+   so the entire returned block area is zeroed */
 void* heap_zalloc(struct heap* id , size_t size){
-    
+    if (!id || size == 0) return NULL;
+    uint32_t block_size = id->info->blck_size;
+    uint32_t blocks_needed = (size + block_size - 1) / block_size;
+
+    void* p = heap_malloc(id, size);
+    if (!p) return NULL;
+
+    // zero exactly blocks_needed * block_size (safe)
+    memset(p, 0, blocks_needed * block_size);
+    return p;
 }
 
-bool  heap_free(struct heap* id , void* ptr){
+/* heap_free: corrected */
+bool heap_free(struct heap* id , void* ptr){
+    if (!id || !ptr) return false;
 
+    uiptr uptr = (uiptr)ptr;
+    uiptr hbase = id->info->heap_base;
+    uiptr hsize = id->info->heap_size;
+    uint32_t block_size = id->info->blck_size;
+
+    // check bounds
+    if ((uptr < hbase) || (uptr >= (hbase + hsize))) return false;
+
+    // find block index relative to user heap
+    uint32_t offset = uptr - hbase;
+    uint32_t block_index_in_user = offset / block_size; // floor
+    uint32_t index = block_index_in_user + id->info->syst_blks; // absolute table index
+
+    uint8_t *table = (uint8_t*) id->sys_data;
+
+    // must be taken and IS_FIRST
+    if (!(table[index] & BLOCK_TAKEN)) return false;
+    if (!(table[index] & IS_FIRST)) {
+        // pointer not at start of allocation
+        return false;
+    }
+
+    // walk and free following blocks until no HAS_NEXT
+    uint32_t i = index;
+    uint32_t freed = 0;
+    while (i < (id->info->syst_blks + id->info->heap_blks)){
+        uint8_t ent = table[i];
+        if (!(ent & BLOCK_TAKEN)) break; // inconsistency -> stop
+        // clear entry
+        table[i] = FREE_BLOCK;
+        freed++;
+        if (ent & HAS_NEXT){
+            i++;
+            continue;
+        } else {
+            break;
+        }
+    }
+
+    // update available count
+    id->info->avai_blks += freed;
+    return true;
 }
