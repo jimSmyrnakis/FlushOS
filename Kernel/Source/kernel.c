@@ -111,6 +111,11 @@ void kernel_main(void){
     text_mode_print_str(vptr , TM_DARK_BLUE);
     text_mode_print_str(vptr2 , TM_DARK_BLUE);
 
+    disk_init();
+    char buffer[512];
+    disk_read_sector(disk_get(0) ,  0 , 1 , buffer);
+
+    text_mode_print_str(&buffer[3] , TM_DARK_BLUE);
 
 
 }

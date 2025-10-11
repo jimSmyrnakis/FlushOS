@@ -2,7 +2,7 @@ cc = i686-elf-gcc
 ld = i686-elf-ld
 ccflags =-g -Wno-unused-variable -ffreestanding -std=gnu99 -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -Iinc -nostdlib -nostartfiles -nodefaultlibs -Wall -O0
 
-object_files=./Builds/kernel_init.asm.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
+object_files=./Builds/kernel_init.asm.o ./Builds/disk.o ./Builds/pata.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
 
 all: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ./Builds/flush_kernel.o 
@@ -31,8 +31,8 @@ all: $(object_files)
 ./Builds/io.o: ./Source/io/io.asm 
 	nasm -g -f elf ./Source/io/io.asm   -o ./Builds/io.o
 
-./Builds/pic.o: ./Source/Interrupts/pic.c 
-	$(cc) $(ccflags) -c ./Source/Interrupts/pic.c  -o ./Builds/pic.o
+./Builds/pic.o: ./Source/drivers/mono/desktop/pic/pic.c 
+	$(cc) $(ccflags) -c ./Source/drivers/mono/desktop/pic/pic.c  -o ./Builds/pic.o
 
 ./Builds/heap.o: ./Source/heap/heap.c 
 	$(cc) $(ccflags) -c ./Source/heap/heap.c   -o ./Builds/heap.o
@@ -54,6 +54,14 @@ all: $(object_files)
 
 ./Builds/virtmem.o: ./Source/virtmem/virtmem.c 
 	$(cc) $(ccflags) -c ./Source/virtmem/virtmem.c    -o ./Builds/virtmem.o
+
+./Builds/pata.o: ./Source/drivers/mono/desktop/pata/pata.c 
+	$(cc) $(ccflags) -c ./Source/drivers/mono/desktop/pata/pata.c  -o ./Builds/pata.o
+
+./Builds/disk.o: ./Source/disk/disk.c 
+	$(cc) $(ccflags) -c ./Source/disk/disk.c   -o ./Builds/disk.o
+
+
 
 clean:
 	rm -rf $(object_files) ./Builds/flush_kernel.o 

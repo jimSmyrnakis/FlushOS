@@ -4,7 +4,7 @@ interrupt_descriptor idt[256];
 idtr idtref;
 
 #include "../drivers/mono/desktop/text_mode/text_mode.h"
-#include "pic.h"
+#include "../drivers/mono/desktop/pic/pic.h"
 void default_handler(void){
     text_mode_print_str("Divide with zero :P !!!" , TM_DARK_BLUE);
 }

@@ -3,7 +3,6 @@
 
     #include <stdint.h>
     #include <stddef.h>
-    #include "../io/io.h"
     
     // port's definitions of mater-slave 8259 pic's
     #define MASTER_PIC ((uint16_t)0x0020)

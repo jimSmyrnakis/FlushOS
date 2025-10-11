@@ -8,7 +8,8 @@ BIOS_BLOCK:
     ; based on osdev org BPB first command
     jmp short entry_point
     nop 
-times (33) db 0
+TEST_TEXT_DISK: db 'Hello' , 0
+times (33 - 6) db 0
 
 
 

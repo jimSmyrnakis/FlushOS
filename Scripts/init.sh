@@ -12,5 +12,4 @@ sudo apt install gdb
 sudo apt install gcc
 sudo apt install ld
 
-
 ./buildCompiler.sh

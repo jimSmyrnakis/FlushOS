@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "text_mode.h": "c",
-        "io.h": "c"
+        "io.h": "c",
+        "pic.h": "c"
     }
 }
