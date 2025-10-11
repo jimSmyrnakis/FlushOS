@@ -2,7 +2,7 @@ cc = i686-elf-gcc
 ld = i686-elf-ld
 ccflags =-g -Wno-unused-variable -ffreestanding -std=gnu99 -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -Iinc -nostdlib -nostartfiles -nodefaultlibs -Wall -O0
 
-object_files=./Builds/kernel_init.asm.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
+object_files=./Builds/kernel_init.asm.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
 
 all: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ./Builds/flush_kernel.o 
@@ -39,6 +39,21 @@ all: $(object_files)
 
 ./Builds/kheap.o: ./Source/heap/kheap.c 
 	$(cc) $(ccflags) -c ./Source/heap/kheap.c   -o ./Builds/kheap.o
+
+./Builds/pde.o: ./Source/paging/pde.c 
+	$(cc) $(ccflags) -c ./Source/paging/pde.c    -o ./Builds/pde.o
+
+./Builds/pte.o: ./Source/paging/pte.c 
+	$(cc) $(ccflags) -c ./Source/paging/pte.c    -o ./Builds/pte.o
+
+./Builds/paging.o: ./Source/paging/paging.c 
+	$(cc) $(ccflags) -c ./Source/paging/paging.c    -o ./Builds/paging.o
+
+./Builds/paging.asm.o: ./Source/paging/paging.asm
+	nasm -g -f elf ./Source/paging/paging.asm   -o ./Builds/paging.asm.o
+
+./Builds/virtmem.o: ./Source/virtmem/virtmem.c 
+	$(cc) $(ccflags) -c ./Source/virtmem/virtmem.c    -o ./Builds/virtmem.o
 
 clean:
 	rm -rf $(object_files) ./Builds/flush_kernel.o 

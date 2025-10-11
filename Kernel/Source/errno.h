@@ -6,9 +6,9 @@
 
     typedef int32_t errno;
     // error codes
-    #define FLUSHOS_EGOOD ((errno)-0)
+    #define FLUSHOS_EGOOD ((errno)0)
     #define FLUSHOS_EUNKNOWN ((errno)0x80000000)
-
+    #define FLUSHOS_EBADARG  ((errno)1)
     // warning codes
     
 

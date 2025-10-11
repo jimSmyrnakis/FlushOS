@@ -65,31 +65,51 @@ void kernel_main(void){
     
     interrupts_init();
     text_mode_print_str(" Lol" , TM_DARK_BLUE);
-    enable_intt();
+    
     pic_enable_irq(1); // test keyboard interrupts :)
     
     kheap_init();
-    void* ptr1 = kmalloc(2 * 4096);
-    printHex(ptr1);
-    void* ptr2 = kmalloc(2 * 4096);
-    printHex(ptr2);
-    kfree(ptr1 + 200);
-
-    void* ptr3 = kmalloc(2 * 4096);
-    printHex(ptr3);
-    kfree(ptr3 + 4095);
-    void* ptr4 = kmalloc(4 * 4096);
-    printHex(ptr4);
-    void* ptr5 = kmalloc(4);
-    printHex(ptr5);
-    kfree(ptr5);
-    kfree(ptr4);
-    void* ptr6 = kmalloc(1);
-    printHex(ptr6);
-
-    
+    enable_intt();
     
 
+
+    disable_intt();
+    struct paging_flags pflags;
+    pflags.cache_disable = false;
+    pflags.cache_write_through = true;
+    pflags.present = true;
+    pflags.user = true;
+    pflags.writable = true;
+    struct paging_info* pinfo =  paging_init(pflags);
+    if (pinfo == NULL)
+        text_mode_print_str("Paging failed !!!" , TM_DARK_BLUE);
+    else 
+        text_mode_print_str("Paging Initiallized !!!" , TM_DARK_BLUE);
+
+
+    char* ptr = (char*)kmalloc(1);
+    char* vptr  = (char*)0x1000;
+    char* vptr2 = (char*)0x2000;
+
+    struct page_info for_ptr;
+    for_ptr.phyical_addr = ptr;
+    for_ptr.flags = pflags;
+
+    paging_switch(pinfo);
+    paging_set(pinfo , vptr , &for_ptr);
+    virtmem_map(vptr2 , ptr);
+
+    paging_enable();
+    enable_intt();
+
+    vptr[0] = 'H';
+    vptr[1] = 'e';
+    vptr2[2] = 'l';
+    ptr[3] = 'l';
+
+    text_mode_print_str(ptr , TM_DARK_BLUE);
+    text_mode_print_str(vptr , TM_DARK_BLUE);
+    text_mode_print_str(vptr2 , TM_DARK_BLUE);
 
 
 

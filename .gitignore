@@ -1,4 +1,5 @@
 /Tools/src/build-gcc
 /Tools/src/build-binutils
+/.vscode
 **.o
 **.bin

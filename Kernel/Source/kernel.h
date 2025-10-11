@@ -7,6 +7,8 @@
 #include "io/io.h"
 #include "Interrupts/pic.h"
 #include "heap/kheap.h"
+#include "paging/paging.h"
+#include "virtmem/virtmem.h"
 void kernel_main(void);
 
 
