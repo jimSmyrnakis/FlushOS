@@ -34,11 +34,11 @@ static void paging_flags_to_pde_flags(
 
 struct paging_info* paging_init(struct paging_flags flags){
     struct paging_info* page_table = 
-    kmalloc(sizeof(pde) * PAGE_DIR_ENTRIES_CNT);
+    kzalloc(sizeof(pde) * PAGE_DIR_ENTRIES_CNT);
     if (page_table == NULL)
         return NULL;
         
-    pte* allptes = kmalloc(sizeof(pte) * TOTAL_PAGE_TABLES);
+    pte* allptes = kzalloc(sizeof(pte) * TOTAL_PAGE_TABLES);
     if (allptes == NULL)
     {
         kfree(page_table);

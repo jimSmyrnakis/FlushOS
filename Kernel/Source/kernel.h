@@ -10,6 +10,7 @@
 #include "virtmem/virtmem.h"
 #include "drivers/mono/desktop/pic/pic.h"
 #include "disk/disk.h"
+#include "file_system/path_parser.h"
 void kernel_main(void);
 
 

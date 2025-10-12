@@ -16,12 +16,15 @@ void  kheap_init(void){
     
     
 }
+
 void* kmalloc(size_t size){
     return heap_malloc(hid , size);
 }
+
 void* kzalloc(size_t size){
     return heap_zalloc(hid , size);
 }
+
 void  kfree(void* ptr){
     heap_free(hid , ptr);
 }

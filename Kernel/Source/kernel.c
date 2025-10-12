@@ -11,7 +11,8 @@ static uint32_t ptr_to_u32(void *p) {
     uintptr_t v = (uintptr_t)p;
     return (uint32_t)v;
 }
-
+#define print(str) text_mode_print_str((str) , TM_DARK_BLUE)
+#define printc(c)  text_mode_write_char((c) , TM_DARK_BLUE)
 // Produce an ASCII hex string "0x1234ABCD" into user buffer.
 // Requirements:
 //   - buf must point to writable memory of at least 11 bytes (10 chars + NUL).
@@ -59,12 +60,12 @@ void kernel_main(void){
 
     text_mode_init(coloured_display);
     char st[] = "Hello World !!! from kernel os \n";
-    text_mode_print_str(st, TM_DARK_BLUE);
+    print(st);
     
     
     
     interrupts_init();
-    text_mode_print_str(" Lol" , TM_DARK_BLUE);
+    print(" Lol");
     
     pic_enable_irq(1); // test keyboard interrupts :)
     
@@ -82,9 +83,9 @@ void kernel_main(void){
     pflags.writable = true;
     struct paging_info* pinfo =  paging_init(pflags);
     if (pinfo == NULL)
-        text_mode_print_str("Paging failed !!!" , TM_DARK_BLUE);
+        print("Paging failed !!!\n");
     else 
-        text_mode_print_str("Paging Initiallized !!!" , TM_DARK_BLUE);
+        print("Paging Initiallized !!!\n");
 
 
     char* ptr = (char*)kmalloc(1);
@@ -106,16 +107,40 @@ void kernel_main(void){
     vptr[1] = 'e';
     vptr2[2] = 'l';
     ptr[3] = 'l';
+    ptr[4] = '0';
+    vptr2[5] = '\n';
 
-    text_mode_print_str(ptr , TM_DARK_BLUE);
-    text_mode_print_str(vptr , TM_DARK_BLUE);
-    text_mode_print_str(vptr2 , TM_DARK_BLUE);
+    print(ptr);
+    print(vptr);
+    print(vptr2);
 
     disk_init();
     char buffer[512];
     disk_read_sector(disk_get(0) ,  0 , 1 , buffer);
 
-    text_mode_print_str(&buffer[3] , TM_DARK_BLUE);
+    print(&buffer[3]);
 
+    const char path[256] = "0:/path1/path dfsds dfsdff$2939128391828939@(#!@)#!@$(! )$! ^#sdf/path3.txt";
+    struct path_root* paths = path_parser_parse(path , NULL);
+
+    void* ptr5 = kmalloc(1);
+    printHex(ptr5);
+    print("\n");
+    printc((char)paths->disk_no + '0');
+    print(":/");
+    struct path_part* part = paths->first;
+
+    while (part)
+    {
+        print("\n");
+        print(part->part);
+        part = part->next;
+    }
+
+    path_parser_free_parts(paths);
+    print("\n");
+    void* ptr6 = kmalloc(1);
+    printHex(ptr6);
+    
 
 }

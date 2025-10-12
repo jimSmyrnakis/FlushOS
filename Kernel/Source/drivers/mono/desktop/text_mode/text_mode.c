@@ -1,19 +1,12 @@
 #include "text_mode.h"
 #include <stdint.h>
 #include <stddef.h>
+#include "../../../../std/string.h"
 
 uint16_t* vga_tm_entry = 0;
 uint16_t vga_tm_current_row = 0;
 uint16_t vga_tm_current_col = 0;
-size_t strlen(const char* text){
-    if (!text) return 0;
 
-    size_t len = 0;
-    while ( text[len] != '\0'){
-        len++;
-    }
-    return len;
-}
 
 uint16_t text_mode_make_char(char c , enum text_mode_colour colour ){
     
@@ -22,6 +15,7 @@ uint16_t text_mode_make_char(char c , enum text_mode_colour colour ){
 
 void text_mode_put_char(uint8_t col , uint8_t row , char ch , enum text_mode_colour colour){
     uint16_t val = text_mode_make_char(ch , colour);
+    
     vga_tm_entry[ row* VGA_WIDTH + col ] = val; 
 }
 
@@ -55,7 +49,11 @@ void text_mode_init(enum text_mode_display display_type){
 
 
 void text_mode_write_char(char ch , enum text_mode_colour colour){
-    text_mode_put_char(vga_tm_current_col , vga_tm_current_row , ch , colour);
+    if (ch == '\n')
+        vga_tm_current_col = VGA_WIDTH;
+    else 
+        text_mode_put_char(vga_tm_current_col , vga_tm_current_row , ch , colour);
+
     vga_tm_current_col++;
     if (vga_tm_current_col >= VGA_WIDTH){
         vga_tm_current_row++;
