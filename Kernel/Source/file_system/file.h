@@ -6,29 +6,14 @@
     #include "../errno.h"
     #include <stdint.h>
     #include <stddef.h>
-
-    // all modes of a file 
-    typedef uint16_t file_mode;
-    enum {
-        FILE_MODE_READ = 0x01,
-        FILE_MODE_WRITE = 0x02,
-        FILE_MODE_APPEND = 0x04,
-        FILE_MODE_INVALID = 0x08
-    };
-
-    // the seek mode , a relative pointer in the file 
-    enum seek_mode {
-        SEEK_CUR,
-        SEEK_END,
-        SEEK_SET
-    };
-
+    #include "../common_defs.h"
+    
     // The open file resolve function type (signature)
     typedef void* (*file_system_open)(struct disk* , struct path_part * , file_mode bit_mode);
     // The resolve function is responsible for checking if the file system in the specific
     // disk has the file system (like FAT 16 , FAT 32 , NFAT FAT 12 , EXT2 etc) that the file
     // system that is responsible ()
-    typedef int (*file_system_resolve)(struct disk* );    
+    typedef errno (*file_system_resolve)(struct disk* );    
 
     struct file_system
     {

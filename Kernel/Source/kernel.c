@@ -110,11 +110,13 @@ void kernel_main(void){
     print(vptr);
     print(vptr2);
 
+    file_system_init();
     disk_init();
     char buffer[512];
     disk_read_sector(disk_get(0) ,  0 , 1 , buffer);
-
-    print(&buffer[3]);
+    char buffer2[18];
+    strncpy(buffer2 , buffer , 18);
+    print(&buffer2[3]);
 
     const char path[256] = "0:/path1/path3.txt";
     struct path_root* paths = path_parser_parse(path , NULL);
@@ -139,7 +141,7 @@ void kernel_main(void){
     printHex(ptr6);
     char test_stream_buffer[1024] = {0};
     struct disk_stream* stream = disk_stream_create(DISK_TYPE_PATA_PRIMARY);
-    disk_stream_seek(stream , SEEK_STR , 3);
+    disk_stream_seek(stream , SEEK_SET , 3);
     disk_stream_read(stream , test_stream_buffer , 1024);
     print(test_stream_buffer);
     disk_stream_destroy(stream);

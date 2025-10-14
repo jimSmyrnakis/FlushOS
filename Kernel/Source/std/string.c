@@ -22,6 +22,22 @@ size_t strnlen(const char* str , size_t max_len){
     return len;
 }
 
+char* strncpy(char* dest , const char* src , size_t len){
+
+    if (!dest || !src || !len){
+        return NULL;
+    }
+
+    for(size_t i = 0;  i < len; i++){
+        dest[i] = src[i];
+        if (src[i] == '\0')
+            break;
+    }
+
+    dest[len - 1] = '\0';
+
+    return dest;
+}
 
 
 int str_to_digit(char c){

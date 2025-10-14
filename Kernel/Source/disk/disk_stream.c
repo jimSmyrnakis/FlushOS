@@ -20,13 +20,13 @@ struct disk_stream* disk_stream_create(int disk_no ){
     return stream;
 }
 
-errno disk_stream_seek(struct disk_stream* stream , enum seek_type type , uint64_t pos){
-    switch (type)
+errno disk_stream_seek(struct disk_stream* stream , enum seek_mode mode , uint64_t pos){
+    switch (mode)
     {
     case SEEK_CUR:
         stream->pos = stream->pos + pos;
         break;
-    case SEEK_STR:
+    case SEEK_SET:
         stream->pos = pos;
         break;
     case SEEK_END:

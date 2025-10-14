@@ -5,6 +5,7 @@
         "pic.h": "c",
         "*.inc": "c",
         "charconv": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "pr77550.C": "cpp"
     }
 }

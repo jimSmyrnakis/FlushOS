@@ -2,6 +2,7 @@
 #include "../config.h"
 #include "../std/memory.h"
 #include "../heap/kheap.h"
+#include "../drivers/mono/file_systems/FAT16/fat16.h"
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -47,6 +48,10 @@ static struct file_descriptor* file_system_get_descriptor(uint32_t fd)
     return file_descriptors[index];
 }
 
+static void file_system_load_kernel_modules(void){
+    file_system_insert(fat16_init());
+}
+
 void file_system_init(void){
     memset(file_systems , (int)NULL , KERNEL_MAX_FILE_SYSTEMS * sizeof(void*));
     memset(file_descriptors , (int)NULL , KERNEL_MAX_FILE_DESCRIPTORS * sizeof(void*));
@@ -54,6 +59,7 @@ void file_system_init(void){
     // may come in form of device files inside these file systems . Yeap we speak about
     // device drivers guys , this is some cool things about kernel development , you learn 
     // everything of how things working :) .
+    file_system_load_kernel_modules();
 }
 
 errno  fopen(const char* filename , file_mode mode){
@@ -69,7 +75,7 @@ struct file_system* fs_resolve(struct disk* disk){
     struct file_system* fs = NULL;
     uint32_t i = 0 ;
     for (i = 0 ; i < KERNEL_MAX_FILE_SYSTEMS; i++){
-        if ( (file_systems[i] != NULL ) && (file_systems[i]->resolve(disk)) ){
+        if ( (file_systems[i] != NULL ) && (file_systems[i]->resolve(disk) == FLUSHOS_EGOOD) ){
             fs = file_systems[i];
             break;
         }

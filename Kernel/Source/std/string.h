@@ -7,6 +7,7 @@
 
     size_t strlen(const char* str);
     size_t strnlen(const char* str , size_t max_len);
+    char* strncpy(char* dest , const char* src , size_t len);
     int str_to_digit(char c);
     bool str_is_digit(char c);
 
