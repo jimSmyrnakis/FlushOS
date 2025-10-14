@@ -1,6 +1,11 @@
 #ifndef __FLUSHOS_DISK_H__
 #define __FLUSHOS_DISK_H__
 
+    //TODO : In the future this may renamed to device , this is how i think 
+    // block / char / socket devices for drivers are implemented , this is so cool
+    // but for the simplicity of this lecture i follow and the learning process i keep
+    // that definition of the disk for moment . 
+
     #include <stdint.h>
     #include <stddef.h>
     #include "../errno.h"
@@ -13,11 +18,12 @@
     };
     typedef errno (*disk_read)(uint64_t lba, uint32_t total, void* buffer);
 
+    struct file_system;
     struct disk{
         enum disk_type type;
         uint32_t  sector_size;
         disk_read read_function;
-        
+        struct file_system* fs;
     };
     // every detail , everything that has to do with each disk (like the number of sectors)
     // the sector size in bytes , some names of the disk , its type and stuff will abstracted 

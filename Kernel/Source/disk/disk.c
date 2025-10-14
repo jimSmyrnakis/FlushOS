@@ -2,7 +2,7 @@
 #include "../std/memory.h"
 #include "../drivers/mono/desktop/pata/pata.h"
 #include "../errno.h"
-
+#include "../file_system/file.h"
 struct disk disk_array[1];
 
 #ifndef NULL
@@ -16,6 +16,7 @@ void disk_init(void){
     disk_array[0].sector_size = 512;
     disk_array[0].type = DISK_TYPE_PATA_PRIMARY;
     disk_array[0].read_function = pata_read_sector;
+    disk_array[0].fs = fs_resolve(&disk_array[0]);
     // any other disk like other PATA and SATA will implemented in the future 
     // when the main focus will be them :)
 

@@ -4,6 +4,9 @@
     #define KERNEL_CODE_SELECTOR 0x08
     #define KERNEL_DATA_SELECTOR 0x10
     #define KERNEL_MAX_PATH_SIZE 256
+    #define KERNEL_MAX_FILE_SYSTEMS 64
+    #define KERNEL_MAX_FILE_DESCRIPTORS 1024
+    
     
 
 #endif 
