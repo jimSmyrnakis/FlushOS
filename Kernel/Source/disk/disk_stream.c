@@ -42,42 +42,43 @@ errno disk_stream_seek(struct disk_stream* stream , enum seek_type type , uint64
 errno disk_stream_read(struct disk_stream* stream , void* buffer , size_t size){
     if (!stream || !size || !buffer)
         return FLUSHOS_EBADARG;
-    return FLUSHOS_ENIMPL;
-    uint32_t sector_size = stream->disk->sector_size;
-    uint32_t sector = stream->pos / sector_size;
-    uint32_t offset = stream->pos % sector_size;
-    uint64_t total_sectors = size / sector_size;
-    uint64_t extra_bytes = (offset + (size % sector_size));
-    total_sectors += extra_bytes / sector_size;
-    uint8_t* sector_buffer = (uint8_t*)kzalloc(sector_size);
-    if (!sector_buffer) return FLUSHOS_ENOMEM;
-    uint8_t* bu8 = (uint8_t*)buffer;
-
-    errno res = disk_read_sector(stream->disk , sector , 1 , sector_buffer);
-    if (res != FLUSHOS_EGOOD){
-        kfree(sector_buffer);
-        return FLUSHOS_EUNKNOWN;
-    }
-    uint64_t start = offset;
     
-    total_sectors--;
-    for (size_t i = 0 ; i < total_sectors; i++){
+    struct disk* disk = stream->disk;
+    errno res = FLUSHOS_EGOOD;
+    // we have to find the total sectors this number of 
+    // bytes (size) and current pos 
+    uint32_t sector_size = stream->disk->sector_size;
+    uint32_t first_sector = stream->pos / sector_size; // tart from this sector
+    uint32_t offset = stream->pos % sector_size; // and this byte in this sector
+    
+    
+    uint8_t* temp_sector_data =  (uint8_t*)kzalloc(sector_size);
+    if (!temp_sector_data){
+        res = FLUSHOS_ENOMEM;
+        goto out;
+    }
 
-        errno res = disk_read_sector(stream->disk , sector + i , 1 , sector_buffer);
-        if (res != FLUSHOS_EGOOD){
-            kfree(sector_buffer);
-            return FLUSHOS_EUNKNOWN;
-        }
-        void* res2 = memcpy(bu8[start + i * sector_size] , sector_buffer , sector_size);
-        if (res2 == NULL){
-            kfree(sector_buffer);
-            return FLUSHOS_EUNKNOWN;
-        }
+    uint32_t curr_sector = first_sector;
+    uint32_t curr_size = size;
+    uint32_t curr_offset = offset;
+    uint32_t sum_rsize = 0;
+    while(curr_size != 0){
+        res = disk_read_sector(disk , curr_sector , 1 , temp_sector_data);
+        if (res != FLUSHOS_EGOOD)
+            goto out;
+        size_t rsize = (curr_size > sector_size) ? (sector_size - curr_offset) : curr_size;
+        memcpy(buffer + sum_rsize, temp_sector_data + curr_offset , rsize);
+        curr_size -= rsize;
+        sum_rsize += rsize;
+        curr_sector++;
+        curr_offset = 0; // after the first iteration we dont need it any more 
+        // but still this way the code is compatible with reading the first sector
+        // right.
     }
     
 out:
-    kfree(sector_buffer);
-    return FLUSHOS_EGOOD;
+    kfree(temp_sector_data);
+    return res;
 } 
 
 void disk_stream_destroy(struct disk_stream* stream){

@@ -4,12 +4,30 @@ BITS 16
 CODE_SEGMENT equ  Code_Descriptor - global_descriptor_table
 DATA_SEGMENT equ  Data_Descriptor - global_descriptor_table
 ;BIOS Possible parameter block
-BIOS_BLOCK:
+BIOS_PARAMETER_BLOCK: ; BPB
     ; based on osdev org BPB first command
     jmp short entry_point
     nop 
-TEST_TEXT_DISK: db 'Hello' , 0
-times (33 - 6) db 0
+    OEMIdentifier           db 'FLUSHOS ' ; an identifier that is used by us to recognise (may not even needed)
+    BytesPerSector          dw 0x200; bytes per sector , this has to do with the permenant disk type and so kernels generly ignore that , better ask the disk him self
+    SectorsPerCluster       db 0x80 ; each cluster has a number of sectors
+    ReservedSectors         dw 200  ; 200 RESEVED SECTORS used for the os (100MB)
+    FATCopies               db 0x02 ; 2 FAT (FAT1 , FAT2)
+    RootDirEntries          dw 0x40 ; 64 root directories entries
+    NumSectors              dw 0x00 ; don't care
+    MediaType               db 0xF8 ; don't care
+    SectorsPerFat           dw 0x100 ; how many sectors per FAT (BPB,EBPB,RESEVED,FAT1,FAT2,DATA_CLUSTERS)
+    SectorsPerTrack         dw 0x20 ; don't care we use lba already and we are can't trust strangers
+    NumberOfHeads           dw 0x40 ; don't care (don't trust strangers make the driver for the device and ask via the chip your self)
+    HiddenSectors           dd 0x00 ; no any (but could be usefull for system data of processes)
+    SectorsBig              dd 0x773594 
+EXTENDED_BIOS_PARAMETER_BLOCK: ; EBPB
+    DriveNumber             db 0x80 ; 
+    WinNTBit                db 0x00
+    Signature               db 0x29
+    VolumeID                dd 0xD105
+    VolumeIDString          db 'FLUSHOS BOO'
+    SystemIDString          db 'FAT16   '
 
 
 
@@ -147,6 +165,7 @@ ata_lba_read:
 
     ret 
 
+TEST_TEXT_DISK2: db 'THIS TEXT HERE IS FOR TESTING WITH BLESS '
 
 times 510 - ($ - $$) db 0
 

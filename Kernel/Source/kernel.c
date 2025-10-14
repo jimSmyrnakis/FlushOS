@@ -82,10 +82,6 @@ void kernel_main(void){
     pflags.user = true;
     pflags.writable = true;
     struct paging_info* pinfo =  paging_init(pflags);
-    if (pinfo == NULL)
-        print("Paging failed !!!\n");
-    else 
-        print("Paging Initiallized !!!\n");
 
 
     char* ptr = (char*)kmalloc(1);
@@ -120,7 +116,7 @@ void kernel_main(void){
 
     print(&buffer[3]);
 
-    const char path[256] = "0:/path1/path dfsds dfsdff$2939128391828939@(#!@)#!@$(! )$! ^#sdf/path3.txt";
+    const char path[256] = "0:/path1/path3.txt";
     struct path_root* paths = path_parser_parse(path , NULL);
 
     void* ptr5 = kmalloc(1);
@@ -141,6 +137,10 @@ void kernel_main(void){
     print("\n");
     void* ptr6 = kmalloc(1);
     printHex(ptr6);
-    
-
+    char test_stream_buffer[1024] = {0};
+    struct disk_stream* stream = disk_stream_create(DISK_TYPE_PATA_PRIMARY);
+    disk_stream_seek(stream , SEEK_STR , 3);
+    disk_stream_read(stream , test_stream_buffer , 1024);
+    print(test_stream_buffer);
+    disk_stream_destroy(stream);
 }

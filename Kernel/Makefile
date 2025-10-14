@@ -2,7 +2,7 @@ cc = i686-elf-gcc
 ld = i686-elf-ld
 ccflags =-g -Wno-unused-variable -ffreestanding -std=gnu99 -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -Iinc -nostdlib -nostartfiles -nodefaultlibs -Wall -O0
 
-object_files=./Builds/kernel_init.asm.o ./Builds/path_parser.o ./Builds/string.o ./Builds/disk.o ./Builds/pata.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
+object_files=./Builds/kernel_init.asm.o ./Builds/disk_stream.o ./Builds/path_parser.o ./Builds/string.o ./Builds/disk.o ./Builds/pata.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
 
 all: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ./Builds/flush_kernel.o 
@@ -60,6 +60,9 @@ all: $(object_files)
 
 ./Builds/disk.o: ./Source/disk/disk.c 
 	$(cc) $(ccflags) -c ./Source/disk/disk.c   -o ./Builds/disk.o
+
+./Builds/disk_stream.o: ./Source/disk/disk_stream.c 
+	$(cc) $(ccflags) -c ./Source/disk/disk_stream.c   -o ./Builds/disk_stream.o
 
 ./Builds/string.o: ./Source/std/string.c 
 	$(cc) $(ccflags) -c ./Source/std/string.c   -o ./Builds/string.o

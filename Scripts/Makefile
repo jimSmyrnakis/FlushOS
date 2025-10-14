@@ -18,7 +18,13 @@ notYet:
 	rm -rf ../Image/flushos.bin
 	dd if=../Bootloaders/Image/bootloader.bin  >> ../Image/flushos.bin
 	dd if=../Builds/os.bin >> ../Image/flushos.bin
-	dd if=/dev/zero bs=512 count=100 >> ../Image/flushos.bin
+	dd if=/dev/zero bs=1048576 count=1024 >> ../Image/flushos.bin
+	sudo mount -t vfat ../Image/flushos.bin /mnt/d
+	sudo cp  ./Hello.txt /mnt/d
+	sudo ls /mnt/d
+	sudo umount /mnt/d
+	
+
 
 ../Builds/os.bin: ../Builds/os.o
 	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o

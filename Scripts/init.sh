@@ -12,4 +12,7 @@ sudo apt install gdb
 sudo apt install gcc
 sudo apt install ld
 
+#this will be used for our os emulation 
+sudo mkdir /mnt/d
+
 ./buildCompiler.sh
