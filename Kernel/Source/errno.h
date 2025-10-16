@@ -12,6 +12,7 @@
     #define FLUSHOS_EBADPATH    ((errno)2)
     #define FLUSHOS_ENOMEM      ((errno)3)
     #define FLUSHOS_ENIMPL      ((errno)4)
+    #define FLUSHOS_EFSNOTUS    ((errno)5)
     // warning codes
     
 

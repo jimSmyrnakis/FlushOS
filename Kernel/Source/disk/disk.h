@@ -24,6 +24,8 @@
         uint32_t  sector_size;
         disk_read read_function;
         struct file_system* fs;
+        uint32_t id;
+        void* priv; 
     };
     // every detail , everything that has to do with each disk (like the number of sectors)
     // the sector size in bytes , some names of the disk , its type and stuff will abstracted 

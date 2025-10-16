@@ -7,6 +7,11 @@
     #include "../../../../common_defs.h"
     #include "../../../../disk/disk.h"
     #include "../../../../file_system/file.h"
+    #include "fat16_structs.h"
+
+    
+
+
     // The open file resolve function type (signature)
     void* fat16_open(struct disk* , struct path_part * , file_mode bit_mode);
     

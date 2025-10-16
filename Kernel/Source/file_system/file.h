@@ -14,7 +14,6 @@
     // disk has the file system (like FAT 16 , FAT 32 , NFAT FAT 12 , EXT2 etc) that the file
     // system that is responsible ()
     typedef errno (*file_system_resolve)(struct disk* );    
-
     struct file_system
     {
         file_system_open        open;
