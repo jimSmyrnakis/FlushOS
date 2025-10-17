@@ -6,6 +6,7 @@
         "*.inc": "c",
         "charconv": "c",
         "cstdint": "c",
-        "pr77550.C": "cpp"
+        "pr77550.C": "cpp",
+        "inc.h": "c"
     }
 }

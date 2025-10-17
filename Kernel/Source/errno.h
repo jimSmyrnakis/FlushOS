@@ -13,6 +13,9 @@
     #define FLUSHOS_ENOMEM      ((errno)3)
     #define FLUSHOS_ENIMPL      ((errno)4)
     #define FLUSHOS_EFSNOTUS    ((errno)5)
+    #define FLUSHOS_ENOBNDFS    ((errno)6)
+    #define FLUSHOS_EINVLDISK   ((errno)7)
+    #define FLUSHOS_EINVLDFS    ((errno)8)
     // warning codes
     
 

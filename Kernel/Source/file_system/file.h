@@ -29,10 +29,11 @@
         struct file_system* fsystem;
         void* private_data; // open function return pointer 
         struct disk* disk;
+        file_mode mode;
     };
 
     void file_system_init(void);
-    errno                 fopen       (const char* filename , file_mode mode);
+    errno  fopen(const char* filename , const char* mode);
     struct file_system* fs_resolve  (struct disk* disk);
 
     void file_system_insert(struct file_system* fs);

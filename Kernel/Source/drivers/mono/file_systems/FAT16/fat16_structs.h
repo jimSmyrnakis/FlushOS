@@ -114,10 +114,7 @@
         fat16_file_type type;
     };
 
-    struct fat16_descriptor{ // this has everything we need for handling new requests for the same file/directory
-        struct fat16_item item; // the item
-        uint32_t pos; // the offset in bytes inside the data cluster ==> sectors that the file is
-    };
+    
 
     struct fat16_private{ // this will be filled and used by our fat16 file system 
         // and is important as is the data that the virtual file system will give to us
@@ -132,7 +129,10 @@
     };
 
 
-    
+    struct fat16_descriptor{ // this has everything we need for handling new requests for the same file/directory
+        struct fat16_item* item; // the item
+        uint32_t pos; // the offset in bytes inside the data cluster ==> sectors that the file is
+    };
 
 
 
