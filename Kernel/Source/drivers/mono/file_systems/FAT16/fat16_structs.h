@@ -95,6 +95,8 @@
         uint32_t count; // items count of a directory 
         uint32_t first_sector; // first sector and last for the directory clusters 
         uint32_t last_sector; // these will make easier to find all sectors caculated
+        // for the root directory , there is not mutch of a use for sub-directories 
+        // as they clusters may splatter all around the disk .
 
     };
 
@@ -125,6 +127,7 @@
 
         struct disk_stream* data_stream; // used only for file/directory data
         struct disk_stream* FAT_stream; // used for File Allocation Table 1/2
+        struct disk_stream* root_stream; // used for the root directory , just as shortcut
         
     };
 

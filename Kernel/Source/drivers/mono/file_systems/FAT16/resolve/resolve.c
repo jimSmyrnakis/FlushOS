@@ -7,6 +7,8 @@
     #include "inc.h"
 
     #include "init_private.c"
+    #include "../common.c"
+    
     
     errno fat16_resolve(struct disk* disk){
         //check if disk is good parameter
@@ -16,14 +18,13 @@
         struct fat16_private* priv = NULL;
         errno res = init_fat16_private(&priv , disk);
         if (priv == NULL){
-            return FLUSHOS_EUNKNOWN;
+            return res;
         }
 
-        if (!is_fat16_header(priv->header)){
-            kfree(priv);
-            return FLUSHOS_EFSNOTUS;
-        }
         
+
+        disk->priv = priv;
+        disk->fs = &fat16_fs;
 
         return FLUSHOS_EGOOD;
     }

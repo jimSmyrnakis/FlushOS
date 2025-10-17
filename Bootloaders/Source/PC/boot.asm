@@ -11,7 +11,7 @@ BIOS_PARAMETER_BLOCK: ; BPB
     OEMIdentifier           db 'FLUSHOS ' ; an identifier that is used by us to recognise (may not even needed)
     BytesPerSector          dw 0x200; bytes per sector , this has to do with the permenant disk type and so kernels generly ignore that , better ask the disk him self
     SectorsPerCluster       db 0x80 ; each cluster has a number of sectors
-    ReservedSectors         dw 200  ; 200 RESEVED SECTORS used for the os (100MB)
+    ReservedSectors         dw 0x200  ; 200 RESEVED SECTORS used for the os (100MB)
     FATCopies               db 0x02 ; 2 FAT (FAT1 , FAT2)
     RootDirEntries          dw 0x40 ; 64 root directories entries
     NumSectors              dw 0x00 ; don't care

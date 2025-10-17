@@ -16,9 +16,9 @@ void disk_init(void){
     disk_array[0].sector_size = 512;
     disk_array[0].type = DISK_TYPE_PATA_PRIMARY;
     disk_array[0].read_function = pata_read_sector;
-    disk_array[0].fs = fs_resolve(&disk_array[0]);
-    disk_array[0].id = 0;
     disk_array[0].priv = NULL;
+    disk_array[0].id = 0;
+    disk_array[0].fs = fs_resolve(&disk_array[0]);
     // any other disk like other PATA and SATA will implemented in the future 
     // when the main focus will be them :)
 

@@ -75,6 +75,8 @@ errno disk_stream_read(struct disk_stream* stream , void* buffer , size_t size){
         // but still this way the code is compatible with reading the first sector
         // right.
     }
+
+    stream->pos += sum_rsize;
     
 out:
     kfree(temp_sector_data);

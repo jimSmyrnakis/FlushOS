@@ -1,12 +1,9 @@
 #include "fat16.h"
 #include "../../../../std/string.h"
 
-#include "fat16_common.c"
+#include "common.c"
 
-struct file_system fat16_fs = {
-    .open = fat16_open,
-    .resolve = fat16_resolve
-};
+
 
 struct file_system* fat16_init(void){
     strncpy( fat16_fs.name  , "FAT16" , 6);
