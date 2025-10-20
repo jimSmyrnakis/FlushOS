@@ -7,6 +7,7 @@
         if (item->type == FAT16_FILE_TYPE_DIRECTORY)
         {
             fat16_free_directory(item->directory);
+            
         }
         
         kfree(item);
@@ -19,7 +20,7 @@
 
 
         struct fat16_item* root_item 
-            = fat16_find_item_in_directory(disk, &priv->root_directory, part->part);
+            = fat16_find_item_in_directory(disk, &priv->root_directory, part);
         if (!root_item)
         {
             return NULL;
@@ -30,8 +31,9 @@
         while (cpart != NULL)
         {
             citem = 
-            fat16_find_item_in_directory(disk , citem , cpart );
-            fat16_free_item(pitem);
+            fat16_find_item_in_directory(disk , &citem->directory , cpart );
+            if (pitem != root_item)
+                fat16_free_item(pitem);
             pitem = citem;
             if (citem == NULL){
                 return NULL;
@@ -40,7 +42,7 @@
             cpart = cpart->next;
         }
         
-
+        
 
 
 

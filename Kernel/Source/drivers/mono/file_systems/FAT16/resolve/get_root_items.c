@@ -14,7 +14,7 @@
         memset(&item , 0x00 , sizeof(item));
 
         // now just for convinience make a short cut name for the stream
-        struct disk_stream* stream = priv->root_stream;
+        struct disk_stream stream = *priv->root_stream;
 
         // take the first sector for our root directory
         uint32_t root_dir_first_sector = 
@@ -23,14 +23,14 @@
              priv->header.bios_parameter_block.sectors_per_fat);
 
         // now just make it point to the first byte 
-        disk_stream_seek(stream  , SEEK_SET , 
+        disk_stream_seek(&stream  , SEEK_SET , 
         root_dir_first_sector * disk->sector_size);
 
         // let's try read every single item 
         uint32_t item_count = 0;
         while (item_count < max_items)
         {
-            errno res = disk_stream_read(stream , &item , sizeof(item));
+            errno res = disk_stream_read(&stream , &item , sizeof(item));
             if (res != FLUSHOS_EGOOD){
                 return res;
             }
@@ -51,7 +51,29 @@
 
         priv->root_directory.count = item_count;
         
+        // load all items
+        priv->root_directory.directory_items = kzalloc(item_count * sizeof(item));
+        uint32_t i  = 0;
+        struct disk_stream stream2 = *priv->root_stream;
+        while (i < item_count)
+        {
+            errno res = disk_stream_read(&stream2 , &priv->root_directory.directory_items[i] , sizeof(item));
+            if (res != FLUSHOS_EGOOD){
+                return res;
+            }
 
+            // is it last ?
+            if (item.filename[0] == 0x00){
+                break;
+            }
+
+            // is it unused ? then don't count it
+            if (item.filename[0] == 0xE5){
+                continue;
+            }
+
+            i ++;
+        }
         return FLUSHOS_EGOOD;
     }
 

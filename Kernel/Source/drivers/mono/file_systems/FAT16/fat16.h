@@ -8,7 +8,9 @@
     #include "../../../../disk/disk.h"
     #include "../../../../file_system/file.h"
     #include "fat16_structs.h"
-
+    #include "../../../../heap/kheap.h"
+    #include "../../../../std/memory.h"
+    #include "../../../../std/string.h"
     
 
 

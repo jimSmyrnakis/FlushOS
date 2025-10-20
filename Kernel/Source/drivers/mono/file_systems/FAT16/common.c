@@ -2,6 +2,7 @@
 #define __FAT16_COMMON_C__
 
     #include "fat16.h"
+    
 
     // all common static functions are here , i find that very usefull 
     // for hiding these symbols from the final kernel full object file
@@ -57,5 +58,7 @@
         .open = fat16_open,
         .resolve = fat16_resolve
     };
+
+    #include "load_item_from_disk.c"
 
 #endif 

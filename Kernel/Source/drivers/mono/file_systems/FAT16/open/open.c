@@ -16,11 +16,15 @@
         
         //fdfsad
         descr->item = fat16_descriptor_get_item(disk , part);
+        if (descr->item == NULL){
+            kfree(descr);
+            return NULL;
+        }
         descr->pos = 0;
 
 
         // not implemented yet
-        return NULL;
+        return descr;
     }
 
 

@@ -145,4 +145,12 @@ void kernel_main(void){
     disk_stream_read(stream , test_stream_buffer , 1024);
     print(test_stream_buffer);
     disk_stream_destroy(stream);
+
+
+    errno fd = fopen("0:/Hello.txt", "r");
+    if (fd == FLUSHOS_EGOOD)
+    {
+        print("We opened hello.txt\n");
+    }
+    while(1) {}
 }
