@@ -14,6 +14,10 @@
 #include "file_system/path_parser.h"
 #include "file_system/file.h"
 #include "std/string.h"
+#include "print.h"
+#include "common_defs.h"
+#include "panic.h"
+
 void kernel_main(void);
 
 

@@ -4,6 +4,10 @@
     #include <stdint.h>
     #include <stddef.h>
 
+
+    #ifndef NULL
+    #define NULL ((void*)0)
+    #endif 
     // all modes of a file 
     typedef uint16_t file_mode;
     enum {

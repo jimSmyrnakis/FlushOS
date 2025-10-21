@@ -2,7 +2,7 @@ cc = i686-elf-gcc
 ld = i686-elf-ld
 ccflags =-g -Wno-unused-variable -ffreestanding -std=gnu99 -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -Iinc -nostdlib -nostartfiles -nodefaultlibs -Wall -O0
 
-object_files=./Builds/kernel_init.asm.o ./Builds/fat16.o ./Builds/file.o ./Builds/disk_stream.o ./Builds/path_parser.o ./Builds/string.o ./Builds/disk.o ./Builds/pata.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
+object_files=./Builds/kernel_init.asm.o ./Builds/print.o ./Builds/panic.o ./Builds/fat16.o ./Builds/file.o ./Builds/disk_stream.o ./Builds/path_parser.o ./Builds/string.o ./Builds/disk.o ./Builds/pata.o ./Builds/virtmem.o ./Builds/paging.asm.o ./Builds/paging.o ./Builds/pte.o ./Builds/pde.o ./Builds/kheap.o ./Builds/heap.o ./Builds/pic.o ./Builds/io.o ./Builds/interrupts.o ./Builds/memory.c.o ./Builds/idt.asm.o ./Builds/idt.c.o  ./Builds/kernel.o ./Builds/text_mode.o  
 
 all: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ./Builds/flush_kernel.o 
@@ -75,6 +75,12 @@ all: $(object_files)
 
 ./Builds/fat16.o: ./Source/drivers/mono/file_systems/FAT16/fat16.c 
 	$(cc) $(ccflags) -c ./Source/drivers/mono/file_systems/FAT16/fat16.c  -o ./Builds/fat16.o
+
+./Builds/panic.o: ./Source/panic.c
+	$(cc) $(ccflags) -c ./Source/panic.c -o ./Builds/panic.o
+
+./Builds/print.o: ./Source/print.c
+	$(cc) $(ccflags) -c ./Source/print.c -o ./Builds/print.o
 
 clean:
 	rm -rf $(object_files) ./Builds/flush_kernel.o 
