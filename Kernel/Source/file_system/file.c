@@ -11,8 +11,8 @@
 #ifndef NULL
 #define NULL ((void*)0)
 #endif 
-struct file_system* file_systems[KERNEL_MAX_FILE_SYSTEMS];
-struct file_descriptor* file_descriptors[KERNEL_MAX_FILE_DESCRIPTORS];
+struct file_system* file_systems[KERNEL_MAX_FILE_SYSTEMS] = {NULL};
+struct file_descriptor* file_descriptors[KERNEL_MAX_FILE_DESCRIPTORS] = {NULL};
 
 static struct file_system** file_system_get_free_file_system(void){
     uint32_t i = 0 ;
@@ -27,6 +27,7 @@ static struct file_system** file_system_get_free_file_system(void){
 
 static errno file_system_get_free_descriptor(struct file_descriptor** descr_out){
     uint32_t i = 0 ;
+    (*descr_out) = NULL;
     for (i = 0 ; i < KERNEL_MAX_FILE_DESCRIPTORS; i++){
         if (file_descriptors[i] == NULL){
             struct file_descriptor* descr = 
@@ -39,6 +40,25 @@ static errno file_system_get_free_descriptor(struct file_descriptor** descr_out)
     }
 
     return FLUSHOS_ENOMEM;
+}
+
+static void file_system_free_descriptor(struct file_descriptor* desc){
+    kfree(desc); 
+}
+
+static void file_system_release_descriptor(int fd){
+    if ( (fd <= 0) || (fd > KERNEL_MAX_FILE_DESCRIPTORS) ) {
+        return;
+    }
+
+
+
+    struct file_descriptor* desc = file_descriptors[fd - 1];
+    if (!desc)  return;
+
+    file_descriptors[fd - 1] = NULL;
+    file_system_free_descriptor(desc);
+    
 }
 
 static struct file_descriptor* file_system_get_descriptor(uint32_t fd)
@@ -57,8 +77,8 @@ static void file_system_load_kernel_disks(void){
 }
 
 void file_system_init(void){
-    memset(file_systems , (int)NULL , KERNEL_MAX_FILE_SYSTEMS * sizeof(void*));
-    memset(file_descriptors , (int)NULL , KERNEL_MAX_FILE_DESCRIPTORS * sizeof(void*));
+    memset(file_systems , 0 , sizeof(file_systems));
+    memset(file_descriptors , 0 , sizeof(file_descriptors));
     // after that we load all core kernel file systems that we have implemented , others
     // may come in form of device files inside these file systems . Yeap we speak about
     // device drivers guys , this is some cool things about kernel development , you learn 
@@ -84,6 +104,8 @@ file_mode string_to_file_mode(const char* mode){
 
     return res;
 }
+
+
 
 int  fopen(const char* filename , const char* mode){
     if (filename == NULL || !mode){
@@ -157,6 +179,7 @@ struct file_system* fs_resolve(struct disk* disk){
 
     return fs;
 }
+
 void file_system_insert(struct file_system* fs){
     // TODO : in the future if the fs is NULL then make the system panic :)
     struct file_system** free_fs = file_system_get_free_file_system();
@@ -186,5 +209,45 @@ out:
     return res;
 }
 
+
+errno fseek(int fd, int offset, enum seek_mode whence)
+{
+    struct file_descriptor* desc = file_system_get_descriptor(fd);
+    if (!desc)
+    {
+        return FLUSHOS_EINVLDDESCR;
+    }
+
+    errno res = desc->fsystem->seek(desc->private_data, offset, whence);
+    return res;
+}
+
+
+errno fstat(int fd, struct file_stat* stat){
+    struct file_descriptor* desc = file_system_get_descriptor(fd);
+    if (!desc)
+    {
+        return FLUSHOS_EINVLDDESCR;
+    }
+
+
+    errno res = desc->fsystem->stat(desc->disk ,  desc->private_data , stat );
+    return res;
+}
+
+errno fclose(int fd){
+    struct file_descriptor* desc = file_system_get_descriptor(fd);
+    if (!desc)
+    {
+        return FLUSHOS_EINVLDDESCR;
+    }
+
+    errno res = desc->fsystem->close(desc->private_data );
+    if (res == FLUSHOS_EGOOD){
+        file_system_release_descriptor(fd);
+    }
+
+    return res;
+}
 
 

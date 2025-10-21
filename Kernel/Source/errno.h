@@ -16,6 +16,8 @@
     #define FLUSHOS_ENOBNDFS    ((errno)6)
     #define FLUSHOS_EINVLDISK   ((errno)7)
     #define FLUSHOS_EINVLDFS    ((errno)8)
+    #define FLUSHOS_EINVLDDESCR ((errno)9)
+    #define FLUSHOS_INVLDIO     ((errno)10)
     // warning codes
     
 

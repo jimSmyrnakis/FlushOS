@@ -133,7 +133,7 @@
 
     struct fat16_descriptor{ // this has everything we need for handling new requests for the same file/directory
         struct fat16_item* item; // the item
-        uint32_t pos; // the offset in bytes inside the data cluster ==> sectors that the file is
+        int pos; // the offset in bytes inside the data cluster ==> sectors that the file is
     };
 
 

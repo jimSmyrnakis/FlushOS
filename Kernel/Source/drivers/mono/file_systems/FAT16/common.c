@@ -57,7 +57,10 @@
     struct file_system fat16_fs = {
         .open = fat16_open,
         .resolve = fat16_resolve,
-        .read = fat16_read
+        .read = fat16_read ,
+        .seek = fat16_seek ,
+        .stat = fat16_stat ,
+        .close = fat16_close
     };
 
     uint32_t cluster_get_info(
@@ -110,6 +113,16 @@
 
     uint32_t fat16_get_cluster_from_directory_item(struct fat16_directory_item* item){
         return item->high_16_bits_first_cluster << 16 | item->low_16_bits_first_cluster;
+    }
+
+    void fat16_free_item(struct fat16_item* item){
+        if (item->type == FAT16_FILE_TYPE_DIRECTORY)
+        {
+            fat16_free_directory(item->directory);
+            
+        }
+        
+        kfree(item);
     }
 
     #include "load_item_from_disk.c"

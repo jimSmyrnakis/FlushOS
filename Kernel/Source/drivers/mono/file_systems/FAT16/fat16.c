@@ -18,3 +18,6 @@ struct file_system* fat16_init(void){
 #include "resolve/resolve.c" 
 #include "open/open.c"
 #include "read/read.c"
+#include "seek/seek.c"
+#include "stat/stat.c"
+#include "close/close.c"

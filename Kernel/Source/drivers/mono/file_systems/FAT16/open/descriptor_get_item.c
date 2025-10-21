@@ -3,15 +3,7 @@
     #include "common.c"
     #include "find_item_in_directory.c"
 
-    void fat16_free_item(struct fat16_item* item){
-        if (item->type == FAT16_FILE_TYPE_DIRECTORY)
-        {
-            fat16_free_directory(item->directory);
-            
-        }
-        
-        kfree(item);
-    }
+    
 
     struct fat16_item* fat16_descriptor_get_item(struct disk* disk , struct path_part* part){
         

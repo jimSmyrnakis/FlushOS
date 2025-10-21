@@ -54,6 +54,7 @@ void printHex(void* ptr){
 #define NULL ((void*)0)
 #endif 
 int len  = 0;
+struct file_stat s;
 void kernel_main(void){
     disable_intt();
     pic_remap(0x20 , 0x28);
@@ -103,16 +104,43 @@ void kernel_main(void){
         fread(read_buffer , 5 , 1 , fd);
         print(read_buffer);
         print("\n");
+        fseek(fd , 0 , SEEK_SET);
         fread(read_buffer , 5 , 1 , fd);
         print(read_buffer);
         print("\n");
+        fseek(fd , -5 , SEEK_CUR);
         fread(read_buffer , 15 , 3 , fd);
         print(read_buffer);
         print("\n");
         fread(read_buffer , 15 , 3 , fd);
         print(read_buffer);
         print("\n");
+
+        
+        fstat(fd ,&s);
+        print("filesize : ");
+        printHex((void*)s.size);
+        print("\n");
+        if (s.status & FILE_STATUS_READ_ONLY){
+            print("File is read only \n");
+        }
+        print("filename : ");
+        print(s.name);
+
+        errno res = fclose(fd);
+        if (res != FLUSHOS_EGOOD){
+            print("Something Wrong with fclose :( !!!\n");
+        }
+        res= fseek(fd , 0 , SEEK_SET);
+        if (res != FLUSHOS_EGOOD){
+            print("Something Wrong with fseek :( !!!\n");
+        }
+        res = fread(read_buffer , 5 , 1 , fd);
+        if (res != FLUSHOS_EGOOD){
+            print("Something Wrong with fread :( !!!\n");
+        }
+        print(read_buffer);
     }
     
-    //while(1) {}
+    while(1) {}
 }

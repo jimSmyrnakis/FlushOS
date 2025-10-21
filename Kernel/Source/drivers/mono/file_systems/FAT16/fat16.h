@@ -25,7 +25,9 @@
     uint32_t size, 
     uint32_t nmemb, 
     char* out);
-
+    errno fat16_seek(void* private, int offset, enum seek_mode seek_mode);
+    errno fat16_stat(struct disk* disk, void* private , struct file_stat* stat);
+    errno fat16_close(void* private );
     struct file_system* fat16_init(void);
 
 #endif 
