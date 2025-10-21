@@ -92,6 +92,6 @@ void kernel_main(void){
         }
         print(read_buffer);
     }
-    //panic();
+    panic("\nError : Just kernel panic !!!\n at file " __FILE__ " in line " " hehe \n");
     while(1) {}
 }

@@ -1,6 +1,6 @@
 #include "panic.h"
 
-void panic(void){
-    
-    while(1) {print("Kernel panicing !!!");};
+void panic(const char* msg){
+    print(msg);
+    while(1) {};//halt cpu
 }

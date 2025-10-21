@@ -5,6 +5,6 @@
     #include <stddef.h>
     #include "print.h"
 
-    void panic(void);
+    void panic(const char* msg);
 
 #endif 
