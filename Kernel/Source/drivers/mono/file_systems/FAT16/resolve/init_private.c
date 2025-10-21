@@ -61,19 +61,33 @@
             return FLUSHOS_ENOMEM;
         }
 
-        // create a fat table stream 
-        priv->FAT_stream = disk_stream_create(disk->id);
-        if (priv->FAT_stream == NULL){
-            disk_stream_destroy(priv->data_stream);
+        // Load FAT1/2 Tables
+        uint32_t FAT_total_sectors = priv->header.bios_parameter_block.sectors_per_fat;
+        uint32_t FAT_total_size = disk->sector_size * FAT_total_sectors;
+        uint32_t FAT1_first_sector = priv->header.bios_parameter_block.reserved_sectors;
+        uint32_t FAT2_first_sector = FAT1_first_sector + priv->header.bios_parameter_block.sectors_per_fat;
+        priv->FAT1 = kzalloc(sizeof(fat16_entry) * FAT_total_size);
+        if (priv->FAT1 == NULL)
+        {
             kfree(priv);
             return FLUSHOS_ENOMEM;
         }
+        disk->read_function(FAT1_first_sector , FAT_total_sectors , priv->FAT1);
+        if (priv->header.bios_parameter_block.fat_copies == 2){
+            priv->FAT2 = kzalloc(sizeof(fat16_entry) * FAT_total_size);
+            if (priv->FAT2 == NULL){
+                kfree(priv);
+                kfree(priv->FAT1);
+                return FLUSHOS_ENOMEM;
+            }
+            disk->read_function(FAT2_first_sector , FAT_total_sectors , priv->FAT2);
+        }
+        
 
         // create a root stream
         priv->root_stream = disk_stream_create(disk->id);
         if (priv->root_stream == NULL){
             disk_stream_destroy(priv->data_stream);
-            disk_stream_destroy(priv->FAT_stream);
             kfree(priv);
             return FLUSHOS_ENOMEM;
         }
@@ -85,7 +99,6 @@
         res = init_fat16_private_root_directory(priv , disk);
         if (res != FLUSHOS_EGOOD){
             disk_stream_destroy(priv->data_stream);
-            disk_stream_destroy(priv->FAT_stream);
             disk_stream_destroy(priv->root_stream);
             kfree(priv);
             return res;
@@ -100,11 +113,11 @@
         res = get_root_items(priv , disk );
         if (res != FLUSHOS_EGOOD){
             disk_stream_destroy(priv->data_stream);
-            disk_stream_destroy(priv->FAT_stream);
             disk_stream_destroy(priv->root_stream);
             kfree(priv);
             return res;
         }
+
 
 
         // set the result pointer 

@@ -114,7 +114,7 @@
         fat16_file_type type;
     };
 
-    
+    typedef uint16_t fat16_entry;
 
     struct fat16_private{ // this will be filled and used by our fat16 file system 
         // and is important as is the data that the virtual file system will give to us
@@ -122,8 +122,10 @@
         struct fat16_header header; // the header
         struct fat16_directory root_directory; // the root directory (this is not a visible one)
 
+        fat16_entry* FAT1;
+        bool hasFAT2;
+        fat16_entry* FAT2; // optional
         struct disk_stream* data_stream; // used only for file/directory data
-        struct disk_stream* FAT_stream; // used for File Allocation Table 1/2
         struct disk_stream* root_stream; // used for the root directory , just as shortcut
         
     };

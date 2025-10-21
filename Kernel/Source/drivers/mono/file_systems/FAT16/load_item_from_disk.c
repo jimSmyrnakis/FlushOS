@@ -24,11 +24,18 @@
             // the new item is this item struct 
             
             new_item->type = FAT16_FILE_TYPE_DIRECTORY;
-
+            
             // load from disk one cluster , first found all used ones
             uint32_t first_cluster = 
             item->low_16_bits_first_cluster & (item->high_16_bits_first_cluster << 16);
-            void* cluster = fat16_read_data_cluster(disk , first_cluster);
+            // find all data clusters of this directory 
+            fat16_entry current_cluster = first_cluster;
+            uint32_t cluster_count = 1;
+            while(fat16_is_cluster_used(current_cluster)){
+                cluster_count++;
+                current_cluster = priv->FAT1[current_cluster];
+            }
+            void* cluster = fat16_read_data_cluster(disk , first_cluster , cluster_count);
             new_item->directory.directory_items = (struct fat16_directory_item*)cluster;
             int cnt = 0;
             while(new_item->directory.directory_items[cnt].filename != 0x00){

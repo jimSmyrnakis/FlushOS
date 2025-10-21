@@ -13,12 +13,14 @@
     // The resolve function is responsible for checking if the file system in the specific
     // disk has the file system (like FAT 16 , FAT 32 , NFAT FAT 12 , EXT2 etc) that the file
     // system that is responsible ()
-    typedef errno (*file_system_resolve)(struct disk* );    
+    typedef errno (*file_system_resolve)(struct disk* );   
+    typedef errno (*file_system_read)(struct disk* disk, void* private, uint32_t size, uint32_t nmemb, char* out); 
+
     struct file_system
     {
         file_system_open        open;
         file_system_resolve     resolve;
-
+        file_system_read        read;
         char                    name[64];
         
     };
@@ -33,9 +35,9 @@
     };
 
     void file_system_init(void);
-    errno  fopen(const char* filename , const char* mode);
+    int  fopen(const char* filename , const char* mode);
     struct file_system* fs_resolve  (struct disk* disk);
-
+    errno fread(void* ptr, uint32_t size, uint32_t nmemb, int fd);
     void file_system_insert(struct file_system* fs);
 
 

@@ -17,3 +17,4 @@ struct file_system* fat16_init(void){
 // reasons , but compilation is happen in one file with all of them together once
 #include "resolve/resolve.c" 
 #include "open/open.c"
+#include "read/read.c"

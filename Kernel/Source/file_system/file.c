@@ -85,48 +85,48 @@ file_mode string_to_file_mode(const char* mode){
     return res;
 }
 
-errno  fopen(const char* filename , const char* mode){
+int  fopen(const char* filename , const char* mode){
     if (filename == NULL || !mode){
-        return FLUSHOS_EBADARG; // invalid argument's
+        return 0; // invalid argument's
     }
 
     struct path_root* paths = path_parser_parse(filename , NULL);
     if (paths == NULL)
-        return FLUSHOS_EBADPATH; // bad path syntax
+        return 0; // bad path syntax
 
     if (paths->first == NULL){
-        return FLUSHOS_EBADPATH; // no valid to try open root folder 
+        return 0; // no valid to try open root folder 
     }
 
     // check if this disk exist's
     struct disk* disk = disk_get(paths->disk_no);
     if (disk == NULL){
-        return FLUSHOS_EINVLDISK;
+        return 0;
     }
 
     // check if there is a bounded file system in this disk :)
     struct file_system* fs = disk->fs;
     if (fs == NULL){
-        return FLUSHOS_ENOBNDFS;
+        return 0;
     }
 
     // take the file mode into flags
     file_mode fmode = string_to_file_mode(mode);
     if (fmode == FILE_MODE_INVALID){
-        return FLUSHOS_EBADARG;
+        return 0;
     }
 
     // call open of the file system 
     void* priv = fs->open(disk , paths->first , fmode);
     if (priv == NULL){
-        return FLUSHOS_EINVLDFS;
+        return 0;
     }
 
     
     // now create a new descriptor
     struct file_descriptor* descr = NULL;
     errno res = file_system_get_free_descriptor(&descr);
-    if (res != FLUSHOS_EGOOD){
+    if (res != 0){
         return res;
     }
 
@@ -137,9 +137,8 @@ errno  fopen(const char* filename , const char* mode){
     descr->private_data = priv;
 
 
-
     
-    return FLUSHOS_EGOOD;
+    return descr->index;
 }
 
 struct file_system* fs_resolve(struct disk* disk){
@@ -167,6 +166,24 @@ void file_system_insert(struct file_system* fs){
     (*free_fs) = fs;
 
 
+}
+
+errno fread(void* ptr, uint32_t size, uint32_t nmemb, int fd){
+    errno res = FLUSHOS_EGOOD;
+    if ((size == 0) || (nmemb == 0) || (fd < 1) )
+    {
+        return FLUSHOS_EBADARG;
+    }
+
+    struct file_descriptor* desc = file_system_get_descriptor(fd);
+    if (!desc)
+    {
+        return FLUSHOS_EBADARG;
+    }
+
+    res = desc->fsystem->read(desc->disk, desc->private_data, size, nmemb, (char*) ptr);
+out:
+    return res;
 }
 
 

@@ -43,12 +43,7 @@
 
         // initiallize our streams to point in the right place
 
-        // first the fat tables are exacly after the reseved sectors (sector 0 is on them)
-        errno res = disk_stream_seek(priv->FAT_stream , SEEK_SET , 
-            priv->header.bios_parameter_block.reserved_sectors * disk->sector_size);
-        if (res != FLUSHOS_EGOOD){
-            return res;
-        }
+        errno res;
 
         // now data stream is after the last sector of the root dir
         res = disk_stream_seek(priv->data_stream , SEEK_SET , 

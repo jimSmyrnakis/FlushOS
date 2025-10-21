@@ -65,7 +65,6 @@ void kernel_main(void){
     
     
     interrupts_init();
-    print(" Lol");
     
     pic_enable_irq(1); // test keyboard interrupts :)
     
@@ -84,73 +83,36 @@ void kernel_main(void){
     struct paging_info* pinfo =  paging_init(pflags);
 
 
-    char* ptr = (char*)kmalloc(1);
-    char* vptr  = (char*)0x1000;
-    char* vptr2 = (char*)0x2000;
-
-    struct page_info for_ptr;
-    for_ptr.phyical_addr = ptr;
-    for_ptr.flags = pflags;
 
     paging_switch(pinfo);
-    paging_set(pinfo , vptr , &for_ptr);
-    virtmem_map(vptr2 , ptr);
 
     paging_enable();
     enable_intt();
 
-    vptr[0] = 'H';
-    vptr[1] = 'e';
-    vptr2[2] = 'l';
-    ptr[3] = 'l';
-    ptr[4] = '0';
-    vptr2[5] = '\n';
-
-    print(ptr);
-    print(vptr);
-    print(vptr2);
 
     file_system_init();
     disk_init();
-    char buffer[512];
-    disk_read_sector(disk_get(0) ,  0 , 1 , buffer);
-    char buffer2[18];
-    strncpy(buffer2 , buffer , 18);
-    print(&buffer2[3]);
-
-    const char path[256] = "0:/path1/path3.txt";
-    struct path_root* paths = path_parser_parse(path , NULL);
-
-    void* ptr5 = kmalloc(1);
-    printHex(ptr5);
-    print("\n");
-    printc((char)paths->disk_no + '0');
-    print(":/");
-    struct path_part* part = paths->first;
-
-    while (part)
-    {
-        print("\n");
-        print(part->part);
-        part = part->next;
-    }
-
-    path_parser_free_parts(paths);
-    print("\n");
-    void* ptr6 = kmalloc(1);
-    printHex(ptr6);
-    char test_stream_buffer[1024] = {0};
-    struct disk_stream* stream = disk_stream_create(DISK_TYPE_PATA_PRIMARY);
-    disk_stream_seek(stream , SEEK_SET , 3);
-    disk_stream_read(stream , test_stream_buffer , 1024);
-    print(test_stream_buffer);
-    disk_stream_destroy(stream);
 
 
-    errno fd = fopen("0:/Hello2.txt", "r");
-    if (fd == FLUSHOS_EGOOD)
+
+    int fd = fopen("0:/Hello.txt", "r");
+    if (fd > 0)
     {
         print("\nWe opened hello.txt\n");
+        char read_buffer[256];
+        fread(read_buffer , 5 , 1 , fd);
+        print(read_buffer);
+        print("\n");
+        fread(read_buffer , 5 , 1 , fd);
+        print(read_buffer);
+        print("\n");
+        fread(read_buffer , 15 , 3 , fd);
+        print(read_buffer);
+        print("\n");
+        fread(read_buffer , 15 , 3 , fd);
+        print(read_buffer);
+        print("\n");
     }
-    while(1) {}
+    
+    //while(1) {}
 }

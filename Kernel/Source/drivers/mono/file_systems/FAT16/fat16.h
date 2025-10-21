@@ -19,6 +19,13 @@
     
     errno fat16_resolve(struct disk* disk);   
 
+    errno fat16_read(
+    struct disk* disk, 
+    void* private, 
+    uint32_t size, 
+    uint32_t nmemb, 
+    char* out);
+
     struct file_system* fat16_init(void);
 
 #endif 
