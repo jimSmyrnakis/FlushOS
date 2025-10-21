@@ -5,7 +5,9 @@
     #include "../../../../../std/string.h"
     #include "../../../../../config.h"
 
-    
+
+
+
 
     struct fat16_item* fat16_find_item_in_directory(
         struct disk* disk, 
@@ -25,9 +27,11 @@
         uint32_t i = 0;
         while( i < dir->count ){
             // now read each item 
+            char tmp_filename[KERNEL_MAX_PATH_SIZE];
+            fat16_get_full_relative_filename(&dir->directory_items[i], tmp_filename, sizeof(tmp_filename));
             int cmp = istrncmp( 
-                (const char*)dir->directory_items->filename , 
-                (const char*)part->part , KERNEL_MAX_PATH_PART_SIZE);
+                (const char*)tmp_filename , 
+                (const char*)part->part , sizeof(tmp_filename));
 
             if (cmp == 0){
                 // found it 

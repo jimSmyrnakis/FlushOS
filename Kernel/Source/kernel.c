@@ -147,10 +147,10 @@ void kernel_main(void){
     disk_stream_destroy(stream);
 
 
-    errno fd = fopen("0:/Hello.txt", "r");
+    errno fd = fopen("0:/Hello2.txt", "r");
     if (fd == FLUSHOS_EGOOD)
     {
-        print("We opened hello.txt\n");
+        print("\nWe opened hello.txt\n");
     }
     while(1) {}
 }

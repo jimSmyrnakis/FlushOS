@@ -52,16 +52,16 @@
         priv->root_directory.count = item_count;
         
         // load all items
-        priv->root_directory.directory_items = kzalloc(item_count * sizeof(item));
+        priv->root_directory.directory_items = kzalloc(max_items * sizeof(item));
         uint32_t i  = 0;
         struct disk_stream stream2 = *priv->root_stream;
-        while (i < item_count)
+        while (i < max_items)
         {
-            errno res = disk_stream_read(&stream2 , &priv->root_directory.directory_items[i] , sizeof(item));
+            errno res = disk_stream_read(&stream2 , &item  , sizeof(item));
             if (res != FLUSHOS_EGOOD){
                 return res;
             }
-
+            memcpy(&priv->root_directory.directory_items[i] , &item , sizeof(item));
             // is it last ?
             if (item.filename[0] == 0x00){
                 break;
