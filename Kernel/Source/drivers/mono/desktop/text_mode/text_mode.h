@@ -13,6 +13,7 @@
     enum text_mode_colour{
         TM_BLACK ,
         TM_DARK_BLUE = 1
+        
     };
     enum text_mode_display{
         coloured_display ,

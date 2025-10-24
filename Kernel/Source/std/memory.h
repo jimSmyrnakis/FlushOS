@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_STD_MEMORY_H__
 #define __FLUSHOS_STD_MEMORY_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
 
     // a simple implementation of the memset

@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_HEAP_H__
 #define __FLUSHOS_HEAP_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include <stdbool.h>
     #include "../errno.h"

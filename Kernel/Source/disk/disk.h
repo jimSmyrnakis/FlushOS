@@ -1,13 +1,11 @@
 #ifndef __FLUSHOS_DISK_H__
 #define __FLUSHOS_DISK_H__
 
-    //TODO : In the future this may renamed to device , this is how i think 
-    // block / char / socket devices for drivers are implemented , this is so cool
-    // but for the simplicity of this lecture i follow and the learning process i keep
-    // that definition of the disk for moment . 
+    
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
+    
     #include "../errno.h"
     // this is a abstraction layer for all our disk accesses :)
     // and even may change for all different platforms , this os

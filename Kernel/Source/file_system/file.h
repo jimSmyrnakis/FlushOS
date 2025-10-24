@@ -4,7 +4,7 @@
     #include "../disk/disk.h"
     #include "path_parser.h"
     #include "../errno.h"
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include "../common_defs.h"
     #define KERNEL_MAX_FILE_NAME_SIZE 64

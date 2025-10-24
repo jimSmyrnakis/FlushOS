@@ -3,6 +3,7 @@
 
     #include <stdint.h>
     #include <stddef.h>
+    #include <stdbool.h>
 
     #define X86_32_CALL __attribute__((cdecl))
     #define X86_32_SYSTEM_STRUCT __attribute__((packed))
@@ -22,10 +23,7 @@
         x86_32_pl_3
     };
 
-    typedef uint16_t bool;
 
-    #define true  ((bool)1)
-    #define false ((bool)0)
 
     #define x86_32_user_mode        ((enum x86_32_pl) x86_32_pl_3)
     #define x86_32_supervisor_mode  ((enum x86_32_pl) x86_32_pl_0)

@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_PRINT_H__
 #define __FLUSHOS_PRINT_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include <stdbool.h>
     #include "drivers/mono/desktop/text_mode/text_mode.h"

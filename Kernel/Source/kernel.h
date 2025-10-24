@@ -17,7 +17,7 @@
 #include "print.h"
 #include "common_defs.h"
 #include "panic.h"
-
+#include <x86_32_proc.h>
 void kernel_main(void);
 
 

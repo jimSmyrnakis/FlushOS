@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_PTE_H__
 #define __FLUSHOS_PTE_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include <stdbool.h>
     typedef uint32_t pte;

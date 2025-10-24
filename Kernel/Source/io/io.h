@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_IO_H__
 #define __FLUSHOS_IO_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
 
     

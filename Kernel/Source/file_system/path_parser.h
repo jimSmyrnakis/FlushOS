@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_PATH_PARSER_H__
 #define __FLUSHOS_PATH_PARSER_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     struct path_part
     {

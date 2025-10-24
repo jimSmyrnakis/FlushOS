@@ -92,6 +92,13 @@ void kernel_main(void){
         }
         print(read_buffer);
     }
-    panic("\nError : Just kernel panic !!!\n at file " __FILE__ " in line " " hehe \n");
+    struct _x86_32_gdtr gdtr;
+    _x86_32_get_gdtr(&gdtr);
+    struct x86_32_gdt gdt;
+    x86_32_gdtr_set_gdt(&gdt , &gdtr);
+    struct _x86_32_descriptor descr;
+    x86_32_gdt_get_descriptor(&gdt , 1 , &descr);
+    //x86_32_gdt_get_descriptor(&my_gdt , 0 , &general_descriptor);
+    panic("\n{Error at file " __FILE__ " in line " " hehe } " ": Just kernel panic !!!\n ");
     while(1) {}
 }

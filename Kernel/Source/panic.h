@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_PANIC_H__
 #define __FLUSHOS_PANIC_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include "print.h"
 

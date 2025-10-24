@@ -1,7 +1,7 @@
 #ifndef __FLUSHOS_FAT16_H__
 #define __FLUSHOS_FAT16_H__
 
-    #include <stdint.h>
+    #include <stdint-gcc.h>
     #include <stddef.h>
     #include <stdbool.h>
     #include "../../../../common_defs.h"
