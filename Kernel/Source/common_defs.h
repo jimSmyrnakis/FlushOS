@@ -24,5 +24,10 @@
         SEEK_SET
     };
 
+    typedef uint32_t uiptr;
+
+    #ifndef NULL
+        #define NULL ((void*)0)
+    #endif 
 
 #endif 

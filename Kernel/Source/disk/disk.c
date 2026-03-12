@@ -3,7 +3,7 @@
 #include "../drivers/mono/desktop/pata/pata.h"
 #include "../errno.h"
 #include "../file_system/file.h"
-struct disk disk_array[1];
+struct disk disk_array[256];
 
 #ifndef NULL
 #define NULL ((void*)0)

@@ -1,12 +1,17 @@
 #include "selector.h"
 
 #define NULL_SELECTOR ((_x86_32_selector)0x0000)
-#define INDEX_MASK    ((_x86_32_selector)0xFFF0)
-#define RPL_MASK      ((_x86_32_selector)0x000E)
+#define INDEX_MASK    ((_x86_32_selector)0xFFF8)
+#define RPL_MASK      ((_x86_32_selector)0x0006)
 #define TI            ((_x86_32_selector)0x0001)
-#define MAX_INDEX_VAL ((uint16_t)        0x0FFF)
+#define MAX_INDEX_VAL ((uint16_t)        0xFFF8)
 
 x86_32_err_type X86_32_CALL x86_32_selector_set(_x86_32_selector* dest , const struct x86_32_selector* src){
+    //check params
+    if ( (dest == NULL) || (src == NULL) )
+        return X86_32_E_BADPARAM;
+    
+    
     //check if index in bounds
     if (src->index > MAX_INDEX_VAL)
         return X86_32_E_OOR;
@@ -15,7 +20,7 @@ x86_32_err_type X86_32_CALL x86_32_selector_set(_x86_32_selector* dest , const s
     (*dest) = NULL_SELECTOR;
 
     //set the index
-    (*dest) |= ((src->index << 4) & INDEX_MASK );
+    (*dest) |= ((src->index ) & INDEX_MASK );
 
     //set the request privilige level
     uint16_t rpl;
@@ -25,6 +30,7 @@ x86_32_err_type X86_32_CALL x86_32_selector_set(_x86_32_selector* dest , const s
         case x86_32_pl_2:rpl = 2;break;
         case x86_32_pl_3:rpl = 3;break;
     }
+
     rpl = rpl << 1;
     (*dest) |= ( rpl & RPL_MASK );
 

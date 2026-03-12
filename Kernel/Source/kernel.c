@@ -2,7 +2,9 @@
 
 //#include <inttypes.h> // optional, for PRI... macros if needed
 
-
+struct linklist* head = NULL;
+    struct linklist first_element;
+    struct linklist second_element;
 
 
 
@@ -47,7 +49,26 @@ void kernel_main(void){
     file_system_init();
     disk_init();
 
+    
+    int x = 1, y = 2;
 
+    first_element.data = &x;
+    first_element.next = NULL;
+
+    second_element.data = &y;
+    second_element.next = NULL;
+
+    linklist_insert(&head, &first_element , NULL);
+    linklist_insert(&head , &second_element , &first_element);
+
+    struct linklist* it = (head);
+    while (it != NULL){
+
+        int val = *((int*)it->data);
+        printHex((void*)val);
+        print("\n");
+        it = it->next;
+    }
 
     int fd = fopen("0:/Hello.txt", "r");
     if (fd > 0)
@@ -98,6 +119,8 @@ void kernel_main(void){
     x86_32_gdtr_set_gdt(&gdt , &gdtr);
     struct _x86_32_descriptor descr;
     x86_32_gdt_get_descriptor(&gdt , 1 , &descr);
+    struct x86_32_code_segment code;
+    //x86_32_descriptor_set_code_segment(&descr);
     //x86_32_gdt_get_descriptor(&my_gdt , 0 , &general_descriptor);
     panic("\n{Error at file " __FILE__ " in line " " hehe } " ": Just kernel panic !!!\n ");
     while(1) {}

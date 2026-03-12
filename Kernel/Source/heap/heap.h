@@ -5,8 +5,8 @@
     #include <stddef.h>
     #include <stdbool.h>
     #include "../errno.h"
-
-    typedef uint32_t uiptr;
+    #include "../common_defs.h"
+    
 
     struct heap_attr{
         uint16_t block_size; // The size on bytes of each block on the heap 

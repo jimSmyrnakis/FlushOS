@@ -27,7 +27,9 @@ notYet:
 
 
 ../Builds/os.bin: ../Builds/os.o
-	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o
+	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o 
+	$(ld) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o
+
 
 ../Builds/os.o: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ../Builds/os.o

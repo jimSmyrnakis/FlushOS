@@ -4,10 +4,20 @@
     #include "../core.h"
     #include "../error.h"
 
+    /**
+     * @author Dimitris Smyrnakis
+     * @brief The system struct of a selector that can be loaded to cs,es,ds,gs,fs,ss 
+     * segment selector register's of the cpu 
+     */
     typedef uint16_t _x86_32_selector;
 
+    /**
+     * @author Dimitris Smyrnakis
+     * @brief A more human readable selector version for easier usage of it .
+     * 
+     */
     struct x86_32_selector{
-        uint16_t       index;
+        uint16_t       index; /* The index in bytes offset for the */
         enum x86_32_pl rpl  ;
         bool           ti   ;
     };

@@ -46,8 +46,6 @@
         void*                 proc 
     );
 
-
-
     // send's the new idt base + limit attributes 
     extern void idtr_load(idtr* ptr);
     // receive's the current idt base + limit attributes
