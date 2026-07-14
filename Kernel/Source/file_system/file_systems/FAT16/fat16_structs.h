@@ -3,7 +3,7 @@
 
     #include <stdint.h>
     #include <stddef.h>
-    #include "../../../../disk/disk_stream.h"
+    #include <disk/disk_stream.h>
 
     struct fat16_ebpb{ // The extended bios parameter block system struct
         uint8_t drive_number; // not used , but for simple bios on 

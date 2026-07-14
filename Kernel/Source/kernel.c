@@ -74,7 +74,7 @@ void kernel_main(void){
     if (fd > 0)
     {
         print("\nWe opened hello.txt\n");
-        char read_buffer[256];
+        char read_buffer[256] = {0};
         fread(read_buffer , 5 , 1 , fd);
         print(read_buffer);
         print("\n");
@@ -113,13 +113,13 @@ void kernel_main(void){
         }
         print(read_buffer);
     }
-    struct _x86_32_gdtr gdtr;
-    _x86_32_get_gdtr(&gdtr);
-    struct x86_32_gdt gdt;
-    x86_32_gdtr_set_gdt(&gdt , &gdtr);
-    struct _x86_32_descriptor descr;
-    x86_32_gdt_get_descriptor(&gdt , 1 , &descr);
-    struct x86_32_code_segment code;
+    //struct _x86_32_gdtr gdtr;
+    //_x86_32_get_gdtr(&gdtr);
+    //struct x86_32_gdt gdt;
+    //x86_32_gdtr_set_gdt(&gdt , &gdtr);
+    //struct _x86_32_descriptor descr;
+    //x86_32_gdt_get_descriptor(&gdt , 1 , &descr);
+    //struct x86_32_code_segment code;
     //x86_32_descriptor_set_code_segment(&descr);
     //x86_32_gdt_get_descriptor(&my_gdt , 0 , &general_descriptor);
     panic("\n{Error at file " __FILE__ " in line " " hehe } " ": Just kernel panic !!!\n ");

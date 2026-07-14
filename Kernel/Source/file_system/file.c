@@ -6,7 +6,7 @@
 #include "path_parser.h"
 #include "../disk/disk.h"
 #include "../disk/disk_stream.h"
-#include "../drivers/mono/file_systems/FAT16/fat16.h"
+#include "file_systems/FAT16/fat16.h"
 
 #ifndef NULL
 #define NULL ((void*)0)

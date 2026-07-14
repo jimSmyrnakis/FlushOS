@@ -11,7 +11,7 @@ all: ../Image/flushos.bin
 	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 gdb
 
 notYet:
-	bless ../Image/flushos.bin
+	ghex ../Image/flushos.bin
 	ndisasm ../Image/flushos.bin
 	
 ../Image/flushos.bin: ../Builds/os.bin ../Bootloaders/Image/bootloader.bin
@@ -27,10 +27,11 @@ notYet:
 
 
 ../Builds/os.bin: ../Builds/os.o
-	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o 
 	$(ld) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o
 
-
+xmmx:
+	$(cc) $(ccflags) -T ../Scripts/common_linker_script.ld -o ../Builds/os.bin ../Builds/os.o 
+	
 ../Builds/os.o: $(object_files)
 	$(ld) -g -relocatable $(object_files) -o ../Builds/os.o
 

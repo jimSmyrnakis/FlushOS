@@ -30,7 +30,7 @@ EXTENDED_BIOS_PARAMETER_BLOCK: ; EBPB
     SystemIDString          db 'FAT16   '
 
 
-
+boot_drive db 0
 entry_point:
     jmp 0:init ; Αναγκάζει τον cs register να πάρει την τιμή 0 και να κάνει αλμα στην εντολή offset init 
 
@@ -50,7 +50,7 @@ start:
     init_descriptors:
         cli 
         lgdt [gdt_descriptor]
-        
+
     enable_protected_mode:
         mov eax , cr0 
         or eax , 0x00000001 ; PE flag to set protected mode
@@ -59,6 +59,10 @@ start:
         
         jmp CODE_SEGMENT:load32
         
+    disk_error:
+    cli
+    hlt
+    jmp disk_error
 
     
 global_descriptor_table:
@@ -103,7 +107,7 @@ gdt_descriptor:
 [BITS 32]
 load32: ; Χρήση ενός απλού οδηγού σκληρού δίσκου για την φώρτωση όλου του πυρίνα 
     mov eax , 1 ; πρώτο μπλόκ του δίσκου
-    mov ecx , 100 ; 10 συνολικά μπλόκς 
+    mov ecx , 200 ; 10 συνολικά μπλόκς 
     mov edi , 0x0100000 ; προόρισμός στην διεύθυνση 1ΜΒ όπου περιμένουμε να αρχίση ο πυρίνας
     call ata_lba_read
     jmp CODE_SEGMENT:0x0100000
@@ -165,7 +169,7 @@ ata_lba_read:
 
     ret 
 
-TEST_TEXT_DISK2: db 'THIS TEXT HERE IS FOR TESTING WITH BLESS '
+
 
 times 510 - ($ - $$) db 0
 
@@ -173,6 +177,8 @@ times 510 - ($ - $$) db 0
 
 bootSignature:
     dw 0xAA55 ; 55AA the way a bios recognise the boot sector on the specific disk
+
+
 
 
 
