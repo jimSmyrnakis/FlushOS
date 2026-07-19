@@ -30,7 +30,7 @@ global outw
 outw:
     push ebp 
     mov ebp , esp 
-
+    
     mov ax , [ebp + 8 ]; data
     mov edx , [ebp + 12]; port
     
@@ -56,12 +56,14 @@ global inb;
 inb:
     push ebp 
     mov ebp  ,esp 
+    push ebx
 
     mov ebx , [ebp + 8 ] ; data pointer (8 bit val)
     mov edx , [ebp + 12] ; port address (16bit val)
     in al , dx 
     mov [ebx] , al  ;
 
+    pop ebx
     pop ebp 
     ret 
 
@@ -69,12 +71,14 @@ global inw;
 inw:
     push ebp 
     mov ebp  ,esp 
+    push ebx 
 
     mov ebx , [ebp + 8 ] ; data pointer (16bit val)
     mov edx , [ebp + 12] ; port address (16bit val)
     in  ax, dx 
     mov [ebx] , ax  ;
 
+    pop ebx
     pop ebp 
     ret 
 
@@ -82,12 +86,14 @@ global ind;
 ind:
     push ebp 
     mov ebp  ,esp 
+    push ebx 
 
     mov ebx , [ebp + 8 ] ; data pointer (32bit val)
     mov edx , [ebp + 12] ; port address (16bit val)
     in  eax, dx 
     mov [ebx] , eax  ;
 
+    pop ebx
     pop ebp 
     ret 
 

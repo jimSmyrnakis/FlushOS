@@ -193,14 +193,14 @@ struct file_system* fat16_init(void){
         uint32_t root_sectors = (priv->header.bios_parameter_block.root_dir_entries 
             * sizeof(struct fat16_directory_item) );
         first_data_sector += 
-             root_sectors / disk->sector_size;
-        if (root_sectors % disk->sector_size){
+             root_sectors / disk->attrs.sector_length;
+        if (root_sectors % disk->attrs.sector_length){
             first_data_sector++;
         }
         uint32_t sector_per_cluster = priv->header.bios_parameter_block.sectors_per_cluster;
         uint32_t cluster_first_sector = first_data_sector + (cluster - 2) * sector_per_cluster ;
 
-        uint32_t bytes_total = sector_per_cluster * disk->sector_size;
+        uint32_t bytes_total = sector_per_cluster * disk->attrs.sector_length;
 
         (*cluster_sector) = cluster_first_sector;
         (*cluster_bytes) = bytes_total;
@@ -266,7 +266,7 @@ struct file_system* fat16_init(void){
             // for each cluster 
             
             errno res = 
-            disk_read_sector(
+            disk_read(
                 disk  , cluster_first_sector , 
                 sectors_per_cluster , data_cluster + bytes_total * i );
             if (res != FLUSHOS_EGOOD){
@@ -355,7 +355,7 @@ struct file_system* fat16_init(void){
 
         // now just make it point to the first byte 
         disk_stream_seek(&stream  , SEEK_SET , 
-        root_dir_first_sector * disk->sector_size);
+        root_dir_first_sector * disk->attrs.sector_length);
 
         // let's try read every single item 
         uint32_t item_count = 0;
@@ -442,8 +442,8 @@ struct file_system* fat16_init(void){
         uint32_t root_dir_size = root_dir_entries * sizeof(struct fat16_directory_item);
 
         // now find the total number of sectors required for them
-        uint32_t total_sectors = root_dir_size / disk->sector_size;
-        if (root_dir_size % disk->sector_size){
+        uint32_t total_sectors = root_dir_size / disk->attrs.sector_length;
+        if (root_dir_size % disk->attrs.sector_length){
             total_sectors ++;
         }
 
@@ -453,14 +453,14 @@ struct file_system* fat16_init(void){
 
         // now data stream is after the last sector of the root dir
         res = disk_stream_seek(priv->data_stream , SEEK_SET , 
-            (root_dir_first_sector + total_sectors) * disk->sector_size);
+            (root_dir_first_sector + total_sectors) * disk->attrs.sector_length);
         if (res != FLUSHOS_EGOOD){
             return res;
         }
 
         //the root stream 
         res = disk_stream_seek(priv->root_stream , SEEK_SET , 
-        root_dir_first_sector * disk->sector_size);
+        root_dir_first_sector * disk->attrs.sector_length);
         if (res != FLUSHOS_EGOOD){
             return res;
         }
@@ -492,7 +492,7 @@ struct file_system* fat16_init(void){
         // so we must read the first sector from the disk .
 
         // first allocate some memory blocks
-        char* boot_sector = (char*)kzalloc(sizeof(disk->sector_size));
+        char* boot_sector = (char*)kzalloc(sizeof(disk->attrs.sector_length));
         if (boot_sector == NULL){
 
             kfree(priv);
@@ -501,7 +501,7 @@ struct file_system* fat16_init(void){
         }
 
         // read the first sector of this disk (real or virtual-partitioned)
-        errno res = disk->read_function(0 , 1 , boot_sector);
+        errno res = disk_read(disk, 0 , 1 , boot_sector);
         if (res != FLUSHOS_EGOOD){
             kfree(priv);
             return res;
@@ -532,7 +532,7 @@ struct file_system* fat16_init(void){
 
         // Load FAT1/2 Tables
         uint32_t FAT_total_sectors = priv->header.bios_parameter_block.sectors_per_fat;
-        uint32_t FAT_total_size = disk->sector_size * FAT_total_sectors;
+        uint32_t FAT_total_size = disk->attrs.sector_length * FAT_total_sectors;
         uint32_t FAT1_first_sector = priv->header.bios_parameter_block.reserved_sectors;
         uint32_t FAT2_first_sector = FAT1_first_sector + priv->header.bios_parameter_block.sectors_per_fat;
         priv->FAT1 = kzalloc(sizeof(fat16_entry) * FAT_total_size);
@@ -541,7 +541,7 @@ struct file_system* fat16_init(void){
             kfree(priv);
             return FLUSHOS_ENOMEM;
         }
-        disk->read_function(FAT1_first_sector , FAT_total_sectors , priv->FAT1);
+        disk_read(disk , FAT1_first_sector , FAT_total_sectors , priv->FAT1);
         if (priv->header.bios_parameter_block.fat_copies == 2){
             priv->FAT2 = kzalloc(sizeof(fat16_entry) * FAT_total_size);
             if (priv->FAT2 == NULL){
@@ -549,7 +549,7 @@ struct file_system* fat16_init(void){
                 kfree(priv->FAT1);
                 return FLUSHOS_ENOMEM;
             }
-            disk->read_function(FAT2_first_sector , FAT_total_sectors , priv->FAT2);
+            disk_read(disk ,FAT2_first_sector , FAT_total_sectors , priv->FAT2);
         }
         
 

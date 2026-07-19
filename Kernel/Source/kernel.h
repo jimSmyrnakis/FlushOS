@@ -19,6 +19,8 @@
 #include "panic.h"
 #include "std/linklist.h"
 #include <x86_32_proc.h>
+#include <driver/driver.h>
+#include <drivers/mono/desktop/pata/pata.h>
 void kernel_main(void);
 
 

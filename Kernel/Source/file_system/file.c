@@ -73,16 +73,14 @@ static struct file_descriptor* file_system_get_descriptor(uint32_t fd)
 }
 
 static void file_system_load_kernel_disks(void){
-    file_system_insert(fat16_init());
+    //file_system_insert(fat16_init());
 }
 
 void file_system_init(void){
     memset(file_systems , 0 , sizeof(file_systems));
     memset(file_descriptors , 0 , sizeof(file_descriptors));
     // after that we load all core kernel file systems that we have implemented , others
-    // may come in form of device files inside these file systems . Yeap we speak about
-    // device drivers guys , this is some cool things about kernel development , you learn 
-    // everything of how things working :) .
+    // may come in form of device files inside these file systems .
     file_system_load_kernel_disks();
 }
 

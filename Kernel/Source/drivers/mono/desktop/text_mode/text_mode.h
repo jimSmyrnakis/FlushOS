@@ -20,6 +20,7 @@
         monochrome_display
     };
     size_t strlen(const char* text);
+    void text_mode_clear(void);
     void text_mode_init(enum text_mode_display display_type);
     void text_mode_write_char(char ch , enum text_mode_colour colour);
     void text_mode_put_char(uint8_t col , uint8_t row , char ch , enum text_mode_colour colour);

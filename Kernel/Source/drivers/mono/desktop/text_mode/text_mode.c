@@ -64,6 +64,16 @@ void text_mode_write_char(char ch , enum text_mode_colour colour){
     }
 }
 
+void text_mode_clear(void){
+    for (int i = 0 ; i < VGA_HEIGHT ; i++){
+        for (int j = 0; j < VGA_WIDTH ; j++){
+            text_mode_put_char((uint8_t)j , (uint8_t)i , '\0' , 0);
+
+        }
+    }
+    vga_tm_current_col = vga_tm_current_row = 0;
+}
+
 void text_mode_print_str(const char* str , enum text_mode_colour colour){
     size_t len = strlen(str);
     for(int i = 0; i < len ; i++){

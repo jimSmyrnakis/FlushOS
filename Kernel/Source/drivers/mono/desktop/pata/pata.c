@@ -1,32 +1,50 @@
 #include "pata.h"
+#include "pata_registers.h"
+#include <print.h>
 
-errno pata_read_sector(uint64_t lba, uint32_t total, void* buf)
-{
-    outb((lba >> 24) | 0xE0 , 0x1F6 );
-    outb(total , 0x1F2 );
-    outb((uint8_t)(lba & 0xff) , 0x1F3);
-    outb((uint8_t)(lba >> 8) , 0x1F4);
-    outb((uint8_t)(lba >> 16) , 0x1F5);
-    outb(0x20 , 0x1F7);
 
-    uint16_t* ptr = (uint16_t*) buf;
-    for (int b = 0; b < total; b++)
-    {
-        // Wait for the buffer to be ready
-        uint8_t c = 0;
-        inb(&c , 0x1F7);
-        while(!(c & 0x08))
-        {
-            inb(&c , 0x1F7);
-        }
+driver pata_driver = {
+    .init   = pata_init     ,
+    .fini   = pata_fini     ,
+    .probe  = pata_probe    ,
+    .type   = BLOCK_DRIVER  ,
+    .name   = "PATA DRIVER"
+};
 
-        // Copy from hard disk to memory
-        for (int i = 0; i < 256; i++)
-        {
-            inw(ptr ,0x1F0);
-            ptr++;
-        }
 
-    }
+pata_diskx* current_primary_drive = NULL;
+pata_diskx* current_secondary_drive = NULL;
+
+
+errno pata_init(void){
+
+
     return FLUSHOS_EGOOD;
+
+}
+
+
+errno pata_fini(void){
+    return FLUSHOS_EGOOD;
+}
+
+
+
+
+errno pata_probe(void){
+
+    pata_detect_disks();
+
+    if (
+            !primary_master_disk.valid
+        &&  !primary_slave_disk.valid
+        &&  !secondary_master_disk.valid
+        &&  !secondary_slave_disk.valid
+    ){
+        print("No valid disk !!!");
+        return FLUSHOS_EINVLDISK;
+    }
+
+    return FLUSHOS_EGOOD;
+
 }

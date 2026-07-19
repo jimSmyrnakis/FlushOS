@@ -7,7 +7,7 @@ object_files=  ../Kernel/Builds/flush_kernel.o  $(libraries)
 
 all: ../Image/flushos.bin
 	
-	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 /usr/bin/qemu-system-x86_64 -hda ../Image/flushos.bin
+	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 /usr/bin/qemu-system-x86_64  -hda ../Image/flushos.bin 
 	LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpthread.so.0 gdb
 
 notYet:
@@ -15,14 +15,16 @@ notYet:
 	ndisasm ../Image/flushos.bin
 	
 ../Image/flushos.bin: ../Builds/os.bin ../Bootloaders/Image/bootloader.bin
-	rm -rf ../Image/flushos.bin
+	rm -rf ../Image/flushos.bin ../Image/test_lba48.qcow2
+	qemu-img create -f qcow2 ../Image/test_lba48.qcow2 200G
 	dd if=../Bootloaders/Image/bootloader.bin  >> ../Image/flushos.bin
 	dd if=../Builds/os.bin >> ../Image/flushos.bin
-	dd if=/dev/zero bs=1048576 count=1024 >> ../Image/flushos.bin
+	dd if=/dev/zero bs=104857 count=1024 >> ../Image/flushos.bin
 	sudo mount -t vfat ../Image/flushos.bin /mnt/d
 	sudo cp  ./Hello.txt /mnt/d
 	sudo ls /mnt/d
 	sudo umount /mnt/d
+	
 	
 
 
@@ -36,4 +38,4 @@ xmmx:
 	$(ld) -g -relocatable $(object_files) -o ../Builds/os.o
 
 clean: 
-	rm -rf ../Image/flushos.bin ../Builds/os.o ../Builds/os.bin
+	rm -rf ../Image/flushos.bin ../Builds/os.o ../Builds/os.bin ../Image/test_lba48.qcow2

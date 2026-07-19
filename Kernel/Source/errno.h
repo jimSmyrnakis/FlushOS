@@ -18,6 +18,10 @@
     #define FLUSHOS_EINVLDFS    ((errno)8)          // Invalid File System
     #define FLUSHOS_EINVLDDESCR ((errno)9)          // Invalid Descriptor
     #define FLUSHOS_INVLDIO     ((errno)10)         // Invalid IO 
+    #define FLUSHOS_NDTCD       ((errno)11)         // Not Detected (like driver didn't detect device) 
+    #define FLUSHOS_EBADDISK    ((errno)12)         // Disk struct is bad , no callbacks or wrong other fields
+    #define FLUSHOS_BADSTRCT    ((errno)13)         // kernel and given structs address are mismaching pointers
+    #define FLUSHOS_EOOB        ((errno)14)         // Out Of Bounds 
     // warning codes
     
 

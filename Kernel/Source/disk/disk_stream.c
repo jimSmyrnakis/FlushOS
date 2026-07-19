@@ -17,7 +17,7 @@ struct disk_stream* disk_stream_create(int disk_no ){
         stream->pos = 0;
     }
 
-    return stream;
+    return stream; 
 }
 
 errno disk_stream_seek(struct disk_stream* stream , enum seek_mode mode , uint64_t pos){
@@ -47,7 +47,7 @@ errno disk_stream_read(struct disk_stream* stream , void* buffer , size_t size){
     errno res = FLUSHOS_EGOOD;
     // we have to find the total sectors this number of 
     // bytes (size) and current pos 
-    uint32_t sector_size = stream->disk->sector_size;
+    uint32_t sector_size = stream->disk->attrs.sector_length;
     uint32_t first_sector = stream->pos / sector_size; // tart from this sector
     uint32_t offset = stream->pos % sector_size; // and this byte in this sector
     
@@ -63,7 +63,7 @@ errno disk_stream_read(struct disk_stream* stream , void* buffer , size_t size){
     uint32_t curr_offset = offset;
     uint32_t sum_rsize = 0;
     while(curr_size != 0){
-        res = disk_read_sector(disk , curr_sector , 1 , temp_sector_data);
+        res = disk_read(disk , curr_sector , 1 , temp_sector_data);
         if (res != FLUSHOS_EGOOD)
             goto out;
         size_t rsize = (curr_size > sector_size) ? (sector_size - curr_offset) : curr_size;
