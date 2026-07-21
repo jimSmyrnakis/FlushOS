@@ -25,12 +25,13 @@
     typedef errno (*file_system_resolve)(struct disk* );
 
     typedef void* (*file_system_open)(struct disk* , struct path_part * , file_mode bit_mode);
-    typedef errno (*file_system_read)(struct disk* disk, void* private, uint32_t size, uint32_t nmemb, char* out); 
-    typedef errno (*file_system_seek)(void* private, int offset, enum seek_mode seek_mode);
-    typedef errno (*file_system_stat)(struct disk* disk, void* private , struct file_stat* stat );
-    typedef errno (*file_system_close)(void* private);
+    typedef errno (*file_system_read)(struct disk* disk, void* priv, uint32_t size, uint32_t nmemb, char* out); 
+    
+    typedef errno (*file_system_seek)(void* priv, int offset, enum seek_mode seek_mode);
+    typedef errno (*file_system_stat)(struct disk* disk, void* priv , struct file_stat* stat );
+    typedef errno (*file_system_close)(void* priv);
 
-    struct file_system
+    struct file_system 
     {
         file_system_resolve     resolve;
         file_system_open        open;
@@ -39,7 +40,7 @@
         file_system_stat        stat;
         file_system_close       close;
         char                    name[KERNEL_MAX_FILE_NAME_SIZE];
-        
+        void* priv;
     };
 
     struct file_descriptor

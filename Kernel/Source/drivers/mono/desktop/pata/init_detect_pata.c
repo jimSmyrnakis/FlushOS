@@ -1,5 +1,6 @@
 #include "pata.h"
 #include "pata_registers.h"
+#include "pata_special_cmds.h"
 #include <print.h>
 
 
@@ -8,65 +9,9 @@ pata_diskx primary_slave_disk;
 pata_diskx secondary_master_disk;
 pata_diskx secondary_slave_disk;
 
-#define IDENTIFY_LBA48 0x0400 // set if lba48 is supported
-#define IDENTIFY_WORD_LBA48 83 
-#define IDENTIFY_WORD_LBA28_SEC_COUNT1 60
-#define IDENTIFY_WORD_LBA28_SEC_COUNT2 61
-#define IDENTIFY_WORD_LBA48_SEC_COUNT1 100
-#define IDENTIFY_WORD_LBA48_SEC_COUNT2 101
-#define IDENTIFY_WORD_LBA48_SEC_COUNT3 102
-#define IDENTIFY_WORD_LBA48_SEC_COUNT4 103
-
-#include <stdint.h>
-#include <stdbool.h>
 
 
-#define IDENTIFY_WORD_LOGICAL_SECTOR_INFO 106
-#define IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_LOW 117
-#define IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_HIGH 118
 
-
-#define IDENTIFY_WORD_106_VALID (1 << 14)
-#define IDENTIFY_WORD_106_LONG_PHYSICAL (1 << 12)
-
-void ata_delay_400ns(uint16_t ATA_CTRL_BASE ){
-    uint8_t status ;
-
-    // wait to be ready 
-    for (int i = 0; i < 10 ; i++)
-        inb(&status , ATA_CTRL_BASE + ALTERNATE_STATUS);
-}
-
-// AI GENERATED - function 
-uint32_t ata_get_logical_sector_size(uint16_t* identify)
-{
-    uint16_t word106 = identify[IDENTIFY_WORD_LOGICAL_SECTOR_INFO];
-
-    /*
-        Bit 14 = words 117-118 are valid
-    */
-    if (!(word106 & IDENTIFY_WORD_106_VALID))
-    {
-        // ATA default logical sector size
-        return 512;
-    }
-
-
-    uint32_t sector_size =
-        ((uint32_t)identify[IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_LOW]) |
-        ((uint32_t)identify[IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_HIGH] << 16);
-
-
-    /*
-        Safety check
-        Logical sector size must be reasonable
-    */
-    if (sector_size == 0)
-        return 512;
-
-
-    return sector_size;
-}
 
 void init_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRIVE , pata_diskx* pdisk){
 
@@ -75,9 +20,9 @@ void init_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRIVE
     outb(control_device_value , ATA_BUSS + DEVICE_CONTROL);
     // check if ready or any error exist's (let errors for later)
     uint8_t status = 0;
-    inb(&status , ATA_IO | STATUS_REGISTER);
+    inb(&status , ATA_IO + STATUS_REGISTER);
     while (status &  STATUS_DRIVER_BUSY){
-        inb(&status , ATA_IO | STATUS_REGISTER);
+        inb(&status , ATA_IO + STATUS_REGISTER);
     }
 
 
@@ -99,34 +44,34 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
     uint8_t status = 0xFF;
 
     // wait to be ready 
-    inb(&status , ATA_IO | STATUS_REGISTER);
+    inb(&status , ATA_IO + STATUS_REGISTER);
     if (status == 0){
         
         goto not_detected;
     }
     // if device exists
     // wait unitl bsy is clear
-    inb(&status , ATA_IO | STATUS_REGISTER);
+    inb(&status , ATA_IO + STATUS_REGISTER);
     while (status &  STATUS_DRIVER_BUSY){
-        inb(&status , ATA_IO | STATUS_REGISTER);
+        inb(&status , ATA_IO + STATUS_REGISTER);
     }
 
     // read lba l/h/m and sector count registers 
     // if not zero disk is not pata (maybe CD/DVD)
     // but they will not supported now
     uint8_t lba_l , lba_h , lba_m , sec_count_reg ;
-    inb( &sec_count_reg , ATA_IO | SECTOR_COUNT_REG);
-    inb( &lba_l , ATA_IO | LBA_LOW_REGISTER);
-    inb( &lba_m , ATA_IO | LBA_MID_REGISTER);
-    inb( &lba_h , ATA_IO | LBA_HIG_REGISTER);
+    inb( &sec_count_reg , ATA_IO + SECTOR_COUNT_REG);
+    inb( &lba_l , ATA_IO + LBA_LOW_REGISTER);
+    inb( &lba_m , ATA_IO + LBA_MID_REGISTER);
+    inb( &lba_h , ATA_IO + LBA_HIG_REGISTER);
     if ( sec_count_reg || lba_h || lba_m || lba_l || (status & STATUS_ERROR)){
         goto not_detected;
     }
     
     // continue polling status until is data ready
-    inb(&status , ATA_IO | STATUS_REGISTER);
+    inb(&status , ATA_IO + STATUS_REGISTER);
     while (!(status &  STATUS_PIO_READY)){
-        inb(&status , ATA_IO | STATUS_REGISTER);
+        inb(&status , ATA_IO + STATUS_REGISTER);
     }
 
     // now read 512 bytes of data haved all important info 
@@ -134,7 +79,7 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
     uint16_t identify_buffer[256];
     while(count < 256){
 
-        inw(&identify_buffer[count] , ATA_IO | DATA_REGISTER);
+        inw(&identify_buffer[count] , ATA_IO + DATA_REGISTER);
 
         count++;
     }
@@ -163,7 +108,7 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
     pdisk->ata_buss = ATA_BUSS;
     pdisk->ata_drive = SELECT_DRIVE;
     pdisk->lba28_last_high = 0x00;
-
+    
     if      ( (ATA_IO == PRIMARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_MASTER_DRIVE) )
         pdisk->_disk = PATA_PRIMARY_MASTER;
     else if ( (ATA_IO == PRIMARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_SLAVE_DRIVE) )

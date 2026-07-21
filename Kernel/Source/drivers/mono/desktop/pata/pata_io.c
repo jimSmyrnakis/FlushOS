@@ -1,5 +1,6 @@
 #include "pata.h"
 #include "pata_registers.h"
+#include "pata_special_cmds.h"
 #include <print.h>
 errno pata_read_lba48(uint64_t lba, uint32_t total, void* buffer , void* priv){
 
@@ -11,15 +12,15 @@ errno pata_write_lba48(uint64_t lba, uint32_t total, void* buffer , void* priv){
 }
 errno pata_read_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
 {
-    print("READ LBA28\n");
+    
     uint8_t status = 0;
     uint16_t* ptr = (uint16_t*)buf;
     pata_diskx* pdisk = (pata_diskx*)priv;
     uint16_t ata_io_base = pdisk->ata_io;
     uint16_t ata_ctrl_base = pdisk->ata_buss;
-
+    errno error = FLUSHOS_EGOOD;
     pata_switch_drive(pdisk , (uint8_t)((lba >> 24) & 0x0F));
-    
+
 
     // Sector count
     outb((uint8_t)(total > 255 ? 0 : total) , ata_io_base + SECTOR_COUNT_REG);
@@ -32,58 +33,55 @@ errno pata_read_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
 
 
     // wait to be ready for it to receive command
-    do
-    {
-        inb(&status,ata_io_base + STATUS_REGISTER);
-    }while ((status & STATUS_DRIVER_BUSY) ||
-       !(status & STATUS_DRIVE_READY));  // 
+    error = ata_wait_ready(ata_io_base , ata_ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->lba28_last_high = 0;
+        return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+    }
+    
 
     
     // READ SECTORS command
-    outb(CMD_READ_LBA28_SECTORS , ata_io_base + COMMAND_REGISTER);
-
-
+    ata_send_command( ata_io_base , ata_ctrl_base , CMD_READ_LBA28_SECTORS );
+    
 
     for(uint32_t sector = 0; sector < total; sector++)
     {
 
         // Wait until data is ready
-        do
-        {
-            inb(&status,ata_io_base + STATUS_REGISTER);
-            if(status & STATUS_ERROR)
-            {
-                print("ATA ERROR\n");
-                return FLUSHOS_EUNKNOWN;
-            }
-
-        }while((status & STATUS_DRIVER_BUSY) ||
-       !(status & STATUS_PIO_READY)); // DRQ
+        error = ata_wait_drq(ata_io_base , ata_ctrl_base);
+        if (error != FLUSHOS_EGOOD){
+            pdisk->lba28_last_high = 0;
+            return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+        }
 
 
-        // Read 512 bytes = 256 words
-        for(int i = 0; i < 256; i++)
+
+        // Read sector bytes / 2 words
+        for(int i = 0; i < (pdisk->_attrs.sector_length/2); i++)
         {
             inw(ptr,ata_io_base + DATA_REGISTER);
             ptr++;
         }
     }
+    ata_delay_400ns(ata_ctrl_base);
 
 
     // Wait until device is finished
-    do
-    {
-        inb(&status,ata_io_base + STATUS_REGISTER);
-
-    }while ((status & STATUS_DRIVER_BUSY) ); // BSY
+    error = ata_wait_not_busy(ata_io_base , ata_ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->lba28_last_high = 0;
+        return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+    }
 
     return FLUSHOS_EGOOD;
 }
 
 errno pata_write_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
 {
-    print("WRITE LBA28\n");
+    
     uint8_t status = 0;
+    errno error = FLUSHOS_EGOOD;
     uint16_t* ptr = (uint16_t*)buf;
     pata_diskx* pdisk = (pata_diskx*)priv;
     uint16_t ata_io_base = pdisk->ata_io;
@@ -103,14 +101,18 @@ errno pata_write_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
 
 
     // wait to be ready for it to receive command
-    do
-    {
-        inb(&status,ata_io_base + STATUS_REGISTER);
-    }while ((status & STATUS_DRIVER_BUSY) ||
-       !(status & STATUS_DRIVE_READY));  // 
+    error = ata_wait_ready(ata_io_base , ata_ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->lba28_last_high = 0;
+        return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+    }
 
     // WRITE SECTORS command
-    outb(CMD_WRITE_LBA28_SECTORS , ata_io_base + COMMAND_REGISTER);
+    ata_send_command(
+        ata_io_base,
+        ata_ctrl_base,
+        CMD_WRITE_LBA28_SECTORS
+    );
 
 
 
@@ -118,21 +120,15 @@ errno pata_write_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
     {
 
         // Wait until data is ready
-        do
-        {
-            inb(&status,ata_io_base + STATUS_REGISTER);
-            if(status & STATUS_ERROR)
-            {
-                print("ATA ERROR\n");
-                return FLUSHOS_EUNKNOWN;
-            }
-
-        }while((status & STATUS_DRIVER_BUSY) ||
-       !(status & STATUS_PIO_READY)); // DRQ
+        error = ata_wait_drq(ata_io_base , ata_ctrl_base);
+        if (error != FLUSHOS_EGOOD){
+            pdisk->lba28_last_high = 0;
+            return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+        }
 
 
-        // write 512 bytes = 256 words
-        for(int i = 0; i < 256; i++)
+        // write sector byte / 2 words
+        for(int i = 0; i < (pdisk->_attrs.sector_length/2); i++)
         {
             outw(*ptr,ata_io_base + DATA_REGISTER);
             ptr++;
@@ -140,18 +136,19 @@ errno pata_write_lba28(uint64_t lba, uint32_t total, void* buf , void* priv)
     }
 
     // wait to be ready for it to receive command
-    do
-    {
-        inb(&status,ata_io_base + STATUS_REGISTER);
-    }while ((status & STATUS_DRIVER_BUSY) );  // 
+    error = ata_wait_not_busy(ata_io_base , ata_ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->lba28_last_high = 0;
+        return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+    }
 
     outb(CMD_LBA28_FLUSH_CACHE , ata_io_base + COMMAND_REGISTER);
     // Wait until device is finished
-    do
-    {
-        inb(&status,ata_io_base + STATUS_REGISTER);
-
-    }while ((status & STATUS_DRIVER_BUSY)); // BSY
+    error = ata_wait_not_busy(ata_io_base , ata_ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->lba28_last_high = 0;
+        return ata_recover(ata_io_base , ata_ctrl_base , pdisk->ata_drive);
+    }
 
     return FLUSHOS_EGOOD;
 }

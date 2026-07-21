@@ -86,4 +86,33 @@
     #define CMD_LBA48_FLUSH_CACHE       0xEA    // flush lba 48 bit sectors
     #define CMD_IDENTIFY_DEVICE         0xEC    // For identify each device buss 
     // and extensions 
+
+
+
+
+
+
+
+    // IDENTIFY
+
+    #define IDENTIFY_LBA48 0x0400 // set if lba48 is supported
+    #define IDENTIFY_WORD_LBA48 83 
+    #define IDENTIFY_WORD_LBA28_SEC_COUNT1 60
+    #define IDENTIFY_WORD_LBA28_SEC_COUNT2 61
+    #define IDENTIFY_WORD_LBA48_SEC_COUNT1 100
+    #define IDENTIFY_WORD_LBA48_SEC_COUNT2 101
+    #define IDENTIFY_WORD_LBA48_SEC_COUNT3 102
+    #define IDENTIFY_WORD_LBA48_SEC_COUNT4 103
+
+    #include <stdint.h>
+    #include <stdbool.h>
+
+
+    #define IDENTIFY_WORD_LOGICAL_SECTOR_INFO 106
+    #define IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_LOW 117
+    #define IDENTIFY_WORD_LOGICAL_SECTOR_SIZE_HIGH 118
+
+
+    #define IDENTIFY_WORD_106_VALID (1 << 14)
+    #define IDENTIFY_WORD_106_LONG_PHYSICAL (1 << 12)
 #endif 

@@ -2,9 +2,6 @@
 
 //#include <inttypes.h> // optional, for PRI... macros if needed
 
-struct linklist* head = NULL;
-    struct linklist first_element;
-    struct linklist second_element;
 
 
 
@@ -54,7 +51,7 @@ void kernel_main(void){
     
 
     
-/*
+    text_mode_clear();
     int fd = fopen("0:/Hello.txt", "r");
     if (fd > 0)
     {
@@ -98,18 +95,18 @@ void kernel_main(void){
         }
         print(read_buffer);
     }
-*/
+
     for (int i = 0; i < 1000000000 ; i++){
         i++;i--;
     }
-    disable_intt();
+    enable_intt();
     text_mode_clear();
     struct disk* pata =  disk_get(0);
     char buf[512] = {'a' , 'b' , 0};
     
     disk_read(pata ,  5 , 1 , buf );
 
-    strncpy(buf , "\nThis will writed to pata sector lba 3" , 500);
+    strncpy(buf , "\nThis will writed to pata sector lba 1" , 500);
     
     disk_write(pata ,  5 , 1 , buf );
     char buf2[512] = {0}; 
@@ -118,7 +115,7 @@ void kernel_main(void){
     print(buf2);
 
 
-    //enable_intt();
+    
     
     panic("\n{Error at file " __FILE__ " in line " " hehe } " ": Just kernel panic !!!\n ");
     while(1) {}

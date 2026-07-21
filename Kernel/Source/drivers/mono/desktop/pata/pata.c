@@ -42,7 +42,7 @@ errno pata_probe(void){
         &&  !secondary_slave_disk.valid
     ){
         print("No valid disk !!!");
-        return FLUSHOS_EINVLDISK;
+        return FLUSHOS_EINVLD;
     }
 
     return FLUSHOS_EGOOD;

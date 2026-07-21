@@ -73,7 +73,7 @@ struct file_system* fat16_init(void){
     struct fat16_item* fat16_descriptor_get_item(struct disk* disk , struct path_part* part){
         
 
-        struct fat16_private* priv = disk->priv;
+        struct fat16_private* priv = fat16_fs.priv;
 
 
         struct fat16_item* root_item 
@@ -184,7 +184,7 @@ struct file_system* fat16_init(void){
         uint32_t* cluster_sector ,
         uint32_t* cluster_bytes , 
         uint32_t* cluster_sectors){
-        struct fat16_private* priv = (struct fat16_private*)disk->priv;
+        struct fat16_private* priv = (struct fat16_private*)fat16_fs.priv;
         uint32_t first_data_sector = priv->header.bios_parameter_block.reserved_sectors;
         first_data_sector += 
             priv->header.bios_parameter_block.fat_copies *
@@ -246,7 +246,7 @@ struct file_system* fat16_init(void){
 
         
 
-        struct fat16_private* priv = (struct fat16_private*)disk->priv;
+        struct fat16_private* priv = (struct fat16_private*)fat16_fs.priv;
         //FirstDataSector = ReservedSectorCount 
         //        + (NumFATs * FATSize)
         //        + RootDirSectors
@@ -294,7 +294,7 @@ struct file_system* fat16_init(void){
             return NULL;
 
         // take all private data (the struct we use)
-        struct fat16_private* priv = (struct fat16_private*)disk->priv;
+        struct fat16_private* priv = (struct fat16_private*)fat16_fs.priv;
 
         struct fat16_item* new_item = (struct fat16_item*)kzalloc(sizeof(struct fat16_item));
         if (new_item == NULL)
@@ -492,7 +492,7 @@ struct file_system* fat16_init(void){
         // so we must read the first sector from the disk .
 
         // first allocate some memory blocks
-        char* boot_sector = (char*)kzalloc(sizeof(disk->attrs.sector_length));
+        char* boot_sector = (char*)kzalloc(disk->attrs.sector_length);
         if (boot_sector == NULL){
 
             kfree(priv);
@@ -601,7 +601,7 @@ struct file_system* fat16_init(void){
         
         struct fat16_descriptor* descr = (struct fat16_descriptor* )private;
         if (descr->item->type != FAT16_FILE_TYPE_SIMPLE_FILE){
-            return FLUSHOS_INVLDIO;
+            return FLUSHOS_EIO;
         }
 
         strncpy( stat->name , (const char*)descr->item->file.filename , KERNEL_MAX_FILE_NAME_SIZE);
@@ -620,7 +620,7 @@ struct file_system* fat16_init(void){
         
         struct fat16_descriptor* descr = (struct fat16_descriptor* )private;
         if (descr->item->type != FAT16_FILE_TYPE_SIMPLE_FILE){
-            return FLUSHOS_INVLDIO;
+            return FLUSHOS_EIO;
         }
 
         if (offset >= (int32_t)descr->item->file.filesize){
@@ -653,7 +653,7 @@ struct file_system* fat16_init(void){
 
         
 
-        disk->priv = priv;
+        fat16_fs.priv = priv;
         disk->fs = &fat16_fs;
 
         return FLUSHOS_EGOOD;
@@ -728,7 +728,7 @@ struct file_system* fat16_init(void){
         
         struct fat16_descriptor* descr = (struct fat16_descriptor* )private;
         if (!descr){
-            return FLUSHOS_INVLDIO;
+            return FLUSHOS_EIO;
         }
 
         

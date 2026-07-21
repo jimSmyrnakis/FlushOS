@@ -58,8 +58,8 @@ errno driver_unregister(driver* driv){
         return FLUSHOS_EOOB;
 
     if (driv != drivers[driv->id])
-        return FLUSHOS_NDTCD;
-
+        return FLUSHOS_ENODEV;
+ 
     errno res = driv->fini();
     drivers[driv->id] = NULL;
     print("Unregister Driver");

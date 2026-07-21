@@ -58,7 +58,6 @@ errno disk_create(
 
 
     // create disk and initialized it 
-    errno err = FLUSHOS_EGOOD;
     memset(&disk_array[index] , 0 , sizeof(struct disk));
     is_available[index] = false;
     total_disks++;
@@ -66,11 +65,12 @@ errno disk_create(
     disk_array[index].id = index;
     disk_array[index].attrs = attrs;
     disk_array[index].priv = priv;
-    // now make call back to virtual file system so it can attach a file system 
-    // if possible . In Future we can add partiotioning by adding partitioning
-    // manager that creates virtual disks as real ones , attach them with 
-    // a file system and mark them as file system supported and the actuall disk driver
-    // as not . 
+    /*  Προς στιγμήν είναι οκ ολο αυτο . Αν όμως στο μέλλον θέλουμε 
+        να υποστήριξουμε και partitioning μπορουμε πολλή εύκολα να 
+        ορισουμε virtual δίσκους πάνω απο έναν κανονικό απλός αλλάζοντας 
+        attributes την βάση και το μέγεθος και ενώνοντας έναν κανονικό δίσκο 
+        η με σύστημα αρχείων η με partiotioning system . 
+    */
     disk_array[index].fs = fs_resolve(&disk_array[index]);
 
 

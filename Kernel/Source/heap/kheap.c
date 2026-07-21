@@ -8,7 +8,7 @@ static struct heap* hid ;
 #endif 
 void  kheap_init(void){
     struct heap_attr attrs;
-    attrs.base = 0x01000000;
+    attrs.base = 0x04000000;
     attrs.block_size = 4096;
     attrs.size = 100 * 1024 * 1024;// 100 MB
     hid = NULL;

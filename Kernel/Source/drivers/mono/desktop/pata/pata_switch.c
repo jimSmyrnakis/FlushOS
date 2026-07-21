@@ -1,4 +1,5 @@
 #include "pata.h"
+#include <print.h>
 #include "pata_registers.h"
 #include "pata_special_cmds.h"
 
@@ -19,7 +20,8 @@ errno pata_switch_drive(pata_diskx* pdisk , uint8_t lba27_24 ){
     )
         return FLUSHOS_EGOOD;*/
     
-    uint8_t drive_sel = pdisk->ata_drive | LBA;
+    uint8_t drive_sel = pdisk->ata_drive | LBA | 0xA0;
+    
     if (pdisk->pata_lba28 == true){
         drive_sel |= ( lba27_24 & 0x0F);
     }
@@ -37,5 +39,5 @@ errno pata_switch_drive(pata_diskx* pdisk , uint8_t lba27_24 ){
     if (pdisk->pata_lba28 == true)
     pdisk->lba28_last_high = lba27_24;
 
-    return FLUSHOS_EGOOD;
+    return ata_wait_ready(ata_io_base, ata_ctrl_base);
 }

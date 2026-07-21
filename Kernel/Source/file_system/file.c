@@ -73,7 +73,7 @@ static struct file_descriptor* file_system_get_descriptor(uint32_t fd)
 }
 
 static void file_system_load_kernel_disks(void){
-    //file_system_insert(fat16_init());
+    file_system_insert(fat16_init());
 }
 
 void file_system_init(void){
@@ -213,7 +213,7 @@ errno fseek(int fd, int offset, enum seek_mode whence)
     struct file_descriptor* desc = file_system_get_descriptor(fd);
     if (!desc)
     {
-        return FLUSHOS_EINVLDDESCR;
+        return FLUSHOS_EINVLD;
     }
 
     errno res = desc->fsystem->seek(desc->private_data, offset, whence);
@@ -225,7 +225,7 @@ errno fstat(int fd, struct file_stat* stat){
     struct file_descriptor* desc = file_system_get_descriptor(fd);
     if (!desc)
     {
-        return FLUSHOS_EINVLDDESCR;
+        return FLUSHOS_EINVLD;
     }
 
 
@@ -237,7 +237,7 @@ errno fclose(int fd){
     struct file_descriptor* desc = file_system_get_descriptor(fd);
     if (!desc)
     {
-        return FLUSHOS_EINVLDDESCR;
+        return FLUSHOS_EINVLD;
     }
 
     errno res = desc->fsystem->close(desc->private_data );
