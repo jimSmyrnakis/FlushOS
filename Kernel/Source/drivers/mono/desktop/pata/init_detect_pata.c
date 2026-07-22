@@ -13,65 +13,76 @@ pata_diskx secondary_slave_disk;
 
 
 
-void init_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRIVE , pata_diskx* pdisk){
+void init_pata_drive(
+    uint16_t io_base , uint16_t ctrl_base , 
+    uint16_t SELECT_DRIVE , pata_diskx* pdisk ){
 
     // disable interrupts -- first driver focus on be polling driver 
     uint8_t control_device_value = NIEN;
-    outb(control_device_value , ATA_BUSS + DEVICE_CONTROL);
+    outb(control_device_value , ctrl_base + DEVICE_CONTROL);
     // check if ready or any error exist's (let errors for later)
-    uint8_t status = 0;
-    inb(&status , ATA_IO + STATUS_REGISTER);
-    while (status &  STATUS_DRIVER_BUSY){
-        inb(&status , ATA_IO + STATUS_REGISTER);
+    errno error = FLUSHOS_EGOOD;
+    error = ata_wait_not_busy(io_base , ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        pdisk->valid = false;
+        return ;
     }
 
-
+    error = disk_create(&pdisk->_module , pdisk , pdisk->_attrs);
+    if (error != FLUSHOS_EGOOD)
+    {
+        // theoreticly a panic here 
+        return ;
+    }
 }
 
 
-void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRIVE , pata_diskx* pdisk){
+void detect_pata_drive(uint16_t io_base , uint16_t ctrl_base , uint16_t SELECT_DRIVE , pata_diskx* pdisk){
     
-    outb( SELECT_DRIVE , ATA_IO + DRIVE_REGISTER);
-    ata_delay_400ns(ATA_BUSS);
+    outb( SELECT_DRIVE , io_base + DRIVE_REGISTER);
+    ata_delay_400ns(ctrl_base);
     
-    outb(0 , ATA_IO + SECTOR_COUNT_REG);
-    outb(0 , ATA_IO + LBA_LOW_REGISTER);
-    outb(0 , ATA_IO + LBA_MID_REGISTER);
-    outb(0 , ATA_IO + LBA_HIG_REGISTER);
-    outb(CMD_IDENTIFY_DEVICE , ATA_IO + COMMAND_REGISTER);
+    outb(0 , io_base + SECTOR_COUNT_REG);
+    outb(0 , io_base + LBA_LOW_REGISTER);
+    outb(0 , io_base + LBA_MID_REGISTER);
+    outb(0 , io_base + LBA_HIG_REGISTER);
+
+    ata_send_command(io_base , ctrl_base , CMD_IDENTIFY_DEVICE);
+   
 
     // now read status reg
     uint8_t status = 0xFF;
-
-    // wait to be ready 
-    inb(&status , ATA_IO + STATUS_REGISTER);
+    errno error = FLUSHOS_EGOOD;
+    // check status if is zero . If yes 
+    // then this is not ata spec drive 
+    // and should stop .
+    inb(&status , io_base + STATUS_REGISTER);
     if (status == 0){
-        
         goto not_detected;
     }
-    // if device exists
+    // if status is zero then 
     // wait unitl bsy is clear
-    inb(&status , ATA_IO + STATUS_REGISTER);
-    while (status &  STATUS_DRIVER_BUSY){
-        inb(&status , ATA_IO + STATUS_REGISTER);
+    error = ata_wait_not_busy(io_base , ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        goto not_detected;
     }
-
+        
     // read lba l/h/m and sector count registers 
     // if not zero disk is not pata (maybe CD/DVD)
     // but they will not supported now
     uint8_t lba_l , lba_h , lba_m , sec_count_reg ;
-    inb( &sec_count_reg , ATA_IO + SECTOR_COUNT_REG);
-    inb( &lba_l , ATA_IO + LBA_LOW_REGISTER);
-    inb( &lba_m , ATA_IO + LBA_MID_REGISTER);
-    inb( &lba_h , ATA_IO + LBA_HIG_REGISTER);
+    inb( &sec_count_reg , io_base + SECTOR_COUNT_REG);
+    inb( &lba_l , io_base + LBA_LOW_REGISTER);
+    inb( &lba_m , io_base + LBA_MID_REGISTER);
+    inb( &lba_h , io_base + LBA_HIG_REGISTER);
     if ( sec_count_reg || lba_h || lba_m || lba_l || (status & STATUS_ERROR)){
         goto not_detected;
     }
     
     // continue polling status until is data ready
-    inb(&status , ATA_IO + STATUS_REGISTER);
-    while (!(status &  STATUS_PIO_READY)){
-        inb(&status , ATA_IO + STATUS_REGISTER);
+    error = ata_wait_drq(io_base , ctrl_base);
+    if (error != FLUSHOS_EGOOD){
+        goto not_detected;
     }
 
     // now read 512 bytes of data haved all important info 
@@ -79,13 +90,13 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
     uint16_t identify_buffer[256];
     while(count < 256){
 
-        inw(&identify_buffer[count] , ATA_IO + DATA_REGISTER);
+        inw(&identify_buffer[count] , io_base + DATA_REGISTER);
 
         count++;
     }
 
     // find if has 28 or 48 bit lba , sectors count  and sector lenght
-    uint16_t has_lba48 = 0 ; //identify_buffer[IDENTIFY_WORD_LBA48] & IDENTIFY_LBA48;
+    uint16_t has_lba48 = identify_buffer[IDENTIFY_WORD_LBA48] & IDENTIFY_LBA48;
     uint32_t sec_count_lba28 =
     ((uint32_t)identify_buffer[60]) |
     ((uint32_t)identify_buffer[61] << 16);
@@ -104,18 +115,18 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
     pdisk->_attrs.sector_length = sector_length;
     pdisk->_attrs.zero = 0;
     pdisk->pata_lba28 = has_lba48 ? false : true;
-    pdisk->ata_io = ATA_IO;
-    pdisk->ata_buss = ATA_BUSS;
+    pdisk->ata_io = io_base;
+    pdisk->ata_buss = ctrl_base;
     pdisk->ata_drive = SELECT_DRIVE;
     pdisk->lba28_last_high = 0x00;
     
-    if      ( (ATA_IO == PRIMARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_MASTER_DRIVE) )
+    if      ( (io_base == PRIMARY_ATA_IO_BASE) && (SELECT_DRIVE == SELECT_MASTER_DRIVE) )
         pdisk->_disk = PATA_PRIMARY_MASTER;
-    else if ( (ATA_IO == PRIMARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_SLAVE_DRIVE) )
+    else if ( (io_base == PRIMARY_ATA_IO_BASE) && (SELECT_DRIVE == SELECT_SLAVE_DRIVE) )
         pdisk->_disk = PATA_PRIMARY_SLAVE;
-    else if ( (ATA_IO == SECONDARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_MASTER_DRIVE) )
+    else if ( (io_base == SECONDARY_ATA_IO_BASE) && (SELECT_DRIVE == SELECT_MASTER_DRIVE) )
         pdisk->_disk = PATA_SECONDARY_MASTER;
-    else if ( (ATA_IO == SECONDARY_CONTROL_IO) && (SELECT_DRIVE == SELECT_SLAVE_DRIVE) )
+    else if ( (io_base == SECONDARY_ATA_IO_BASE) && (SELECT_DRIVE == SELECT_SLAVE_DRIVE) )
         pdisk->_disk = PATA_SECONDARY_SLAVE;
     else 
         pdisk->_disk = PATA_PRIMARY_MASTER;
@@ -139,83 +150,42 @@ void detect_pata_drive(uint16_t ATA_IO , uint16_t ATA_BUSS , uint16_t SELECT_DRI
 }
 
 void detect_primary_master_disk(void){
-    uint16_t ATA_IO = PRIMARY_CONTROL_IO;
-    uint16_t ATA_BUSS = PRIMARY_CONTROL_BUSS;
+    uint16_t io_base = PRIMARY_ATA_IO_BASE;
+    uint16_t ctrl_base = PRIMARY_ATA_CONTROL_BASE;
     uint16_t SELECT_DRIVE = SELECT_MASTER_DRIVE;
-    detect_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &primary_master_disk);
+    detect_pata_drive(io_base , ctrl_base , SELECT_DRIVE , &primary_master_disk);
     if (primary_master_disk.valid == false){
         print("PATA PRIMARY MASTER DRIVE : Not exists\n");
         return ;
     }
     current_primary_drive = &primary_master_disk;
     
-    init_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &primary_master_disk);
+    init_pata_drive(io_base , ctrl_base , SELECT_DRIVE , &primary_master_disk );
 
-    disk_create(
-        &primary_master_disk._module , 
-        &primary_master_disk , 
-        primary_master_disk._attrs);
-
-    print("PATA PRIMARY MASTER DRIVE :\n");
-    print("capacity : ");
-    uintptr_t cap =  primary_master_disk._attrs.sector_count * primary_master_disk._attrs.sector_length;
-    printHex((void*)cap);
-    print("\n");
-    print("lba base : ");
-    uintptr_t lbb = primary_master_disk._attrs.lba_base;
-    printHex((void*)lbb);
-    print("\n");
-    if (primary_master_disk.pata_lba28)
-        print("lba28");
-    else 
-        print("lba48");
-    print("\n");
-    print("sector len : ");
-    printHex((void*)primary_master_disk._attrs.sector_length);
-    print("\n");
+    
     
 }
 
 void detect_primary_slave_disk(void){
-    uint16_t ATA_IO = PRIMARY_CONTROL_IO;
-    uint16_t ATA_BUSS = PRIMARY_CONTROL_BUSS;
+    uint16_t ATA_IO = PRIMARY_ATA_IO_BASE;
+    uint16_t ATA_BUSS = PRIMARY_ATA_CONTROL_BASE;
     uint16_t SELECT_DRIVE = SELECT_SLAVE_DRIVE;
+
     detect_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &primary_slave_disk);
     if (primary_slave_disk.valid == false){
-        print("PATA PRIMARY SLAVE DRIVE : Not exists\n");
         return ;
     }
     current_primary_drive = &primary_slave_disk;
     
     init_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &primary_slave_disk);
 
-    disk_create(
-        &primary_slave_disk._module , 
-        &primary_slave_disk , 
-        primary_slave_disk._attrs);
 
-    print("PATA PRIMARY SLAVE DRIVE :\n");
-    print("capacity : ");
-    uintptr_t cap =  primary_slave_disk._attrs.sector_count * primary_slave_disk._attrs.sector_length;
-    printHex((void*)cap);
-    print("\n");
-    print("lba base : ");
-    uintptr_t lbb = primary_slave_disk._attrs.lba_base;
-    printHex((void*)lbb);
-    print("\n");
-    if (primary_slave_disk.pata_lba28)
-        print("lba28");
-    else 
-        print("lba48");
-    print("\n");
-    print("sector len : ");
-    printHex((void*)primary_slave_disk._attrs.sector_length);
-    print("\n");
+    
 }
 
 void detect_secondary_master_disk(void){
-    uint16_t ATA_IO = SECONDARY_CONTROL_IO;
-    uint16_t ATA_BUSS = SECONDARY_CONTROL_BUSS;
+    uint16_t ATA_IO = SECONDARY_ATA_IO_BASE;
+    uint16_t ATA_BUSS = SECONDARY_ATA_IO_CONTROL_BASE;
     uint16_t SELECT_DRIVE = SELECT_MASTER_DRIVE;
     detect_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &secondary_master_disk);
     if (secondary_master_disk.valid == false){
@@ -227,33 +197,13 @@ void detect_secondary_master_disk(void){
 
     init_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &secondary_master_disk);
 
-    disk_create(
-        &secondary_master_disk._module , 
-        &secondary_master_disk , 
-        secondary_master_disk._attrs);
 
-    print("PATA SECONDARY MASTER DRIVE :\n");
-    print("capacity : ");
-    uintptr_t cap =  secondary_master_disk._attrs.sector_count * secondary_master_disk._attrs.sector_length;
-    printHex((void*)cap);
-    print("\n");
-    print("lba base : ");
-    uintptr_t lbb = secondary_master_disk._attrs.lba_base;
-    printHex((void*)lbb);
-    print("\n");
-    if (secondary_master_disk.pata_lba28)
-        print("lba28");
-    else 
-        print("lba48");
-    print("\n");
-    print("sector len : ");
-    printHex((void*)secondary_master_disk._attrs.sector_length);
-    print("\n");
+    
 }
 
 void detect_secondary_slave_disk(void){
-    uint16_t ATA_IO = SECONDARY_CONTROL_IO;
-    uint16_t ATA_BUSS = SECONDARY_CONTROL_BUSS;
+    uint16_t ATA_IO = SECONDARY_ATA_IO_BASE;
+    uint16_t ATA_BUSS = SECONDARY_ATA_IO_CONTROL_BASE;
     uint16_t SELECT_DRIVE = SELECT_SLAVE_DRIVE;
     detect_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &secondary_slave_disk);
     if (secondary_slave_disk.valid == false){
@@ -265,36 +215,14 @@ void detect_secondary_slave_disk(void){
 
     init_pata_drive(ATA_IO , ATA_BUSS , SELECT_DRIVE , &secondary_slave_disk);
 
-    disk_create(
-        &secondary_slave_disk._module , 
-        &secondary_slave_disk , 
-        secondary_slave_disk._attrs);
 
-    print("PATA SECONDARY SLAVE DRIVE :\n");
-    print("capacity : ");
-    uintptr_t cap =  secondary_slave_disk._attrs.sector_count * secondary_slave_disk._attrs.sector_length;
-    printHex((void*)cap);
-    print("\n");
-    print("lba base : ");
-    uintptr_t lbb = secondary_slave_disk._attrs.lba_base;
-    printHex((void*)lbb);
-    print("\n");
-    if (secondary_slave_disk.pata_lba28)
-        print("lba28");
-    else 
-        print("lba48");
-    print("\n");
-    print("sector len : ");
-    printHex((void*)secondary_slave_disk._attrs.sector_length);
-    print("\n");
+    
 }
 
 
 bool pata_detect_disks(void){
     detect_secondary_master_disk();
     detect_secondary_slave_disk();
-    // do last the primary master , for not needed to switch on it
-    // at the next read/write ops
     detect_primary_slave_disk();
     detect_primary_master_disk();
 
@@ -304,3 +232,4 @@ bool pata_detect_disks(void){
     return true;
 
 }
+

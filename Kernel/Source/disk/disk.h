@@ -6,7 +6,9 @@
  * @brief Εδώ είναι ο διαχειρίστης δίσκων . Είναι υπεύθυνος ώστε κάθε νέα προσθήκη 
  * δίσκου να γίνεται αναζήτηση μέσα απο το σύστημα άρχειων για άν τεριάζει το format
  * του . Μέλλοντικα είναι επίσης εύκολο να πρόσθεθη και partitioning δύνατοτητα με πάρομοιο
- * τρόπο περίπου με αυτό του συστήματος άρχειων .
+ * τρόπο περίπου με αυτό του συστήματος άρχειων . Με άλλα λόγια ένας δίσκος που δημιουργήται
+ * ενόνεται με ένα σύστημα άρχειων . Αυτο το κατάφερνει καλόντας όλα τις ύλοποιήσεις σύστηματων
+ * αρχείων να δει το καθενα ξεχωριστα αν superblock μορφή τεριάζει με το δικο του .
  * @version 0.1
  * @date 2026-07-20
  * 
@@ -20,15 +22,26 @@
     
     #include "../errno.h"
     
-
+    #define DISK_MODEL_MAX 64
+    #define DISK_SERIAL_MAX 32
+    #define DISK_FIRMWARE_MAX 32
     struct disk_attributes{
-        uint32_t sector_length;
-        uint32_t zero;
-        uint64_t sector_count;
-        uint64_t lba_base;
+        char disk_model[DISK_MODEL_MAX];
+        char serial[DISK_SERIAL_MAX];
+        char firmware_version[DISK_FIRMWARE_MAX];
+        uint32_t    sector_length;
+        uint32_t    zero;
+        uint64_t    sector_count;
+        uint64_t    lba_base;
+        uint8_t     lba_bits;
+        uint8_t     zero1;
+        uint16_t    zero2;
+        uint32_t    zero3;
+
         
     }__attribute__((packed));
     typedef struct disk_attributes disk_attributes;
+
 
     typedef errno (*disk_read_proc)(uint64_t lba, uint32_t total, void* buffer , void* priv);
     
@@ -120,4 +133,4 @@
     
 
     
-#endif 
+#endif  

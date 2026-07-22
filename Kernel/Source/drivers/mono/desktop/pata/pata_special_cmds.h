@@ -19,4 +19,5 @@ errno ata_recover(
     uint16_t ctrl_base,
     uint8_t select_drive 
 );
+errno pata_handle_error(pata_diskx* disk, errno err);
 #endif 

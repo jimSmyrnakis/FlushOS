@@ -13,7 +13,7 @@
 
     errno pata_init(void);
     errno pata_fini(void);
-    errno pata_probe(void);
+    errno pata_probe(void); 
 
     enum pata_disk{
         PATA_PRIMARY_MASTER ,

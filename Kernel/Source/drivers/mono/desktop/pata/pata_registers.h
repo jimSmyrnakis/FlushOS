@@ -5,18 +5,18 @@
     #include <stddef.h>
     #include <stdbool.h>
 
-    // ATA Busses
-    #define PRIMARY_CONTROL_IO      0x1F0
-    #define PRIMARY_CONTROL_BUSS    0x3F6
-    #define SECONDARY_CONTROL_IO    0x170
-    #define SECONDARY_CONTROL_BUSS  0x376
+    // ATA io bases
+    #define PRIMARY_ATA_IO_BASE             0x1F0
+    #define PRIMARY_ATA_CONTROL_BASE        0x3F6
+    #define SECONDARY_ATA_IO_BASE           0x170
+    #define SECONDARY_ATA_IO_CONTROL_BASE   0x376
 
-    // ATA Drivers Busses enable
-    #define MASTER_BUSS 0xE0    // LBA + select master buss device
-    #define SLAVE_BUSS  0xF0    // LBA + select slave buss device
+    // ATA Drivers Buss enable
+    #define MASTER_DRIVE 0xE0    // LBA + select master buss device
+    #define SLAVE_DRIVE  0xF0    // LBA + select slave buss device
 
     // CONTROL ATA IO REGISTERS
-    // ATA Registers
+    // ATA Registers offsets
     #define DATA_REGISTER       0x0 // RW (LBA28 - 16 bit , LBA48 - 16 bit)
     #define ERROR_REGISTER      0x1 // R  (LBA28 -  8 bit , LBA48 - 16 bit)
     #define FEATURES_REGISTER   0x1 // W -- not used just reference it
@@ -37,7 +37,7 @@
     #define STATUS_DRIVER_BUSY  0x80    // Indicates the drive is preparing to send/receive 
     //data (wait for it to clear). In case of 'hang' (it never clears), do a software reset.
 
-    // Driver Register
+    // Driver Register flags
     #define LBA28_27_24 0x0F 
     #define DRV         0x10
     #define LBA         0x40
@@ -65,7 +65,7 @@
 
     // ALTERNATE REGISTERS has same flags with status register
 
-    // Device Control Register
+    // Device Control Register flags
     #define NIEN 0x02   // Set this to stop the current device from sending interrupts.
     #define SRST 0x04   // Set, then clear (after 5us), this to do a "Software Reset" 
     //on all ATA drives on a bus, if one is misbehaving.

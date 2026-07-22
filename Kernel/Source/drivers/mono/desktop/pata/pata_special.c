@@ -55,11 +55,12 @@ uint32_t ata_get_logical_sector_size(uint16_t* identify)
 
 errno ata_check_status(uint8_t status)
 {
+    if(status & STATUS_DRIVE_FAULT)
+        return FLUSHOS_EHWFAIL;
+
     if(status & STATUS_ERROR)
         return FLUSHOS_EIO;
 
-    if(status & STATUS_DRIVE_FAULT)
-        return FLUSHOS_EHWFAIL;
 
     return FLUSHOS_EGOOD;
 }
@@ -106,6 +107,7 @@ errno ata_soft_reset(
     ata_delay_5us(ctrl_base);
 
     outb(NIEN, ctrl_base + DEVICE_CONTROL);
+    ata_delay_400ns(ctrl_base);
 
     errno err = ata_wait_not_busy(io_base, ctrl_base);
     if(err != FLUSHOS_EGOOD)
@@ -188,6 +190,32 @@ errno ata_recover(
 
     return err;
 }
-    
+
+errno pata_handle_error(pata_diskx* disk, errno err)
+{
+    switch(err)
+    {
+        case FLUSHOS_ETIMEOUT:
+        case FLUSHOS_EIO:
+            return ata_recover(disk->ata_io , disk->ata_buss , disk->ata_drive);
+
+        case FLUSHOS_EHWFAIL:
+            disk->valid = false;
+            return err;
+
+        case FLUSHOS_ERMVD:
+            disk->valid = false;
+            return err;
+
+        case FLUSHOS_EBBLCK:
+            return err;
+
+        case FLUSHOS_EDTCRPT:
+            return err;
+
+        default:
+            return err;
+    }
+}
 
 

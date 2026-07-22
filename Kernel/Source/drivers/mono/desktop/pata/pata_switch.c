@@ -8,10 +8,10 @@ errno pata_switch_drive(pata_diskx* pdisk , uint8_t lba27_24 ){
     uint16_t ata_ctrl_base = pdisk->ata_buss;
     uint16_t ata_drive = pdisk->ata_drive;
     pata_diskx** current = &current_primary_drive;
-    if (ata_io_base == SECONDARY_CONTROL_IO)
+    if (ata_io_base == SECONDARY_ATA_IO_BASE)
         current = &current_secondary_drive;
 
-   /* if ( 
+    /*if ( 
         ((*current)->ata_drive == pdisk->ata_drive) && 
         (
             ((pdisk->lba28_last_high == lba27_24) ) || 
@@ -34,10 +34,17 @@ errno pata_switch_drive(pata_diskx* pdisk , uint8_t lba27_24 ){
     // delay 
     ata_delay_400ns(ata_ctrl_base);
 
+    
+    errno error = ata_wait_ready(ata_io_base, ata_ctrl_base); // RDY & BSY check
+
+    if (error != FLUSHOS_EGOOD)
+        return error;
+
     (*current) = pdisk;
 
     if (pdisk->pata_lba28 == true)
-    pdisk->lba28_last_high = lba27_24;
+        pdisk->lba28_last_high = lba27_24;
 
-    return ata_wait_ready(ata_io_base, ata_ctrl_base);
+    
+    return error;
 }

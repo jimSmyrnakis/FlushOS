@@ -1,9 +1,11 @@
-1. make usage of uint64_t data type where must supported
-2. Make virtual file system more clean and bug fixes
-3. Make fat16 file system more clean and bug fixes
-4. Add writing sectors to a disk  
-5. Implement pata write sector 
-6. Add virtual file system write functionality
-7. Implement fat16 file system write functionality
-8. Implement fat16 directory read functionality 
-9. Implement fat16 directory write functionality 
+// Short time todo list
+1. Add flush method to disks
+2. Add info about the maximum transfer sectors per request on a disk creation
+3. Make disk drivers create multiple disk modules and give them to driver manager to create the disks .
+
+
+
+
+
+// For the future to do 
+1. Make disks record the bad sectors at the beggining and as long as the system runs and ask more access to sectors

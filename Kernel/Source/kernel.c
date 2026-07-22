@@ -107,7 +107,6 @@ void kernel_main(void){
     disk_read(pata ,  5 , 1 , buf );
 
     strncpy(buf , "\nThis will writed to pata sector lba 1" , 500);
-    
     disk_write(pata ,  5 , 1 , buf );
     char buf2[512] = {0}; 
     disk_read(pata ,  5 , 1 , buf2 );
